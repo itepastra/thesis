@@ -3,6 +3,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     typst = {
       url = "github:typst/typst";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
   outputs =
@@ -36,11 +37,7 @@
         {
           default = pkgs.mkShellNoCC {
             packages = [
-              (typst.typst-dev.overrideAttrs (
-                finalAttrs: previousAttrs: {
-                  cargoBuildFlags = [ "--features html" ];
-                }
-              ))
+              pkgs.typst
             ];
           };
         }
