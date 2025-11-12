@@ -16,11 +16,11 @@
 
 = Personal Data <s1>
 
-The current title I'm using is: ....
+The current title I'm using is: Hardware Topology Inspired Quantum Ansatz Design
 
 My name is Noa Puk Aarts, and my student number is 6292755.
 
-The project is done as part of the .... research group.
+The project is done as part of the Quantum Machine Learning research group.
 
 My responsible supervisor is Sebastian Feld,
 and my daily supervisor is Koen Mesman.
@@ -29,10 +29,45 @@ The date of submission is #datetime.today().display()
 
 = Introduction
 
+I feel like Koen wrote a good introduction on my thesis when he wrote a research proposal for me,
+after meeting we decided to include that as an introduction.
+
+== Context
+
+Currently, Quantum Machine learning is an upcoming field, with shown advantages in data requirements for
+learning from complex quantum information@quantum-advantage-bounds@quantum-advantage-learning. Currently, the quantum circuits (Ansatze) that act as
+machine learning kernels are constructed using heuristics. These heuristic Ansatze are designed to have low
+requirements on quantum hardware, as the current quantum computers are prone to noise and of small scale
+(also dubbed the NISQ era).
+The fallacy of these hardware-efficient Ansatze is that their effectiveness is not well understood. Ansatze
+can be evaluated by their expressivity@expressibility-and-entanglement, i.e., how much of the Hilbert space they can explore, and their
+entanglement capabilities@expressibility-and-entanglement@quantum-dynamics-physical-resource. Simply taking the expressivity is unfortunately not enough to fully capture the
+Ansatze’s expected performance@expressibility-and-entanglement@scaling-variational-circuit-depth. As such, designing QML Ansatze is a non-trivial challenge.
+
+== Scope and Motivation
+
+The scope for this project will be the automatic design of a QML Ansatze, based on quantum hardware noise
+and connectivity topology, given a set of targets. The motivation is to find quantum kernels most resilient to
+the hardware noise experienced in implementation. A downside of using topology-inspired kernels is the lack
+of re-usability, as it’s performance will be directly correlated to the hardware it is run on. However, it must be
+noted that quantum hardware is showing increasing uniformity in its design, and (elements of) hardware are
+very likely to be reused by other consumers (or can be intentionally targeted). When considering commercial
+or research usage, generally, one or a few topologies are used by the user in the first place.
+The proposed method is to use user defined criteria, such as expressivity, entanglement (e.g., Schmidt
+strength@quantum-dynamics-physical-resource), and number of trainable parameters as a cost function, and generating an Ansatz to best fulfill
+the requirement given a topology. Methods of generating the Ansatz can be done either by procedural generation
+(algorithmic), using optimization methods such as genetic algorithms@architecture-search@evolutionary-architecture-search, or by using machine learning
+methods such as generative AI@generative-quantum-eigensolver. The choice is to be determined by the MSc. student, based on a review of
+methods.
+Targets for the projects are comparisons on standard benchmarks of the QML Ansatz using hardware
+simulations. If time and resources allow, this can be extended to real hardware experiments. Alternatively,
+the proposed method can be further fine-tuned for more complex environments, such as resilience to time-dependency@calibration-aware-transpilation.
+The novelty of this project is the bottom-up approach with great detail, exploiting NISQ hardware to its
+fullest. This has to date not been shown to this extend
 
 = Research Question
 
-What is a way to generate an ansatz for a specific quantum computer to perform well on variational quantum eigensolvers?
+= Hypothesis
 
 = Data Management
 
@@ -53,59 +88,30 @@ This experience will be useful since my project will have a significant focus on
 
 = Risk Management
 
-While there are many risks I can think of, these four seem the most likely.
-I based this likelyhood on self-knowledge and my experiences with my bachelor thesis/team projects.
+Due to the nature of making something new, there are a couple of risks in the time management.
+If, after the literature research, I decide to use a certain strategy and figure out that it won't work
+much later on this could lead to a significant amount of wasted time.
 
-== Surgery pulls me out of it
+To manage this risk I will define certain components which each have to work on their own before continuing.
+Choosing these components carefully allows them to be interchanged when a different strategy is chosen
+at a later time. This interchangability limits time spent when a direction is found fruitless.
 
-I will very likely have a surgery somewhere in the spring, afterwards I'll have a revalidation period.
-Since I won't be rushing my own health this may take quite a while where I won't be focusing on the project
-as much. The risk is that after this I have to figure out where I was with my project and how to continue it.
+There are also personal risks associated with me working on a project. Since I have a surgery somewhere
+next year this will lead to a (possibly lengthy) revalidation period during my thesis project.
+After this period I'll have to be able to hop back into the project, to help me do this I will try to
+finish a contained part before the surgery and write down what the next steps in the research are.
+This way I can read the next steps once I'm ready to start working again.
 
-Since I will know at least a couple of weeks before the surgery, I have time to wrap up the thing I'm working on
-at that moment. I can also write down a short summary of what I was working on and what the next steps should be.
-Once I finished (part of) my recovery I will then be able to read this summary to get back into the flow of research.
-
-== Losing data
-
-Because I'm using a local Git server, there is the risk of my drive failing/getting corrupted and me losing my
-progress and data.
-
-I think the chances of this happening are small but non-zero. I also
-work on both my laptop and my computer which helps because I'll have somewhat recent clones of the git repository
-on both. This means that three copies exist, they aren't in different locations though. But if my house burns down
-I think I have bigger problems than the lost data.
-
-== Losing Motivation
-
-I am a person who is very bad at doing things when I'm not motivated to do them. This is partially due to
-the combination of ASS and ADHD (combined type).
-
-My motivation for this project is mostly driven from a sense to help my daily supervisor, together with
-me wanting to "make something I'm proud of". I think that once I have a plan around the holidays I will
-also get the new motivation source of "ooh, this is cool, I want to make this" which I hope will
-last till at least the bulk of the project is done.
-
-For the writing of the report I'm more scared, but I hope that starting with writing during the earlier
-phases so that I have at least a basis will help counteract my dislike of (academic) writing.
-I also have medication for my ADHD that should help with working on aspects that I know I have to do even
-though I don't like them.
-
-== Scope Creep
-
-While working on the project I will be thinking of ways to expand the scope to cover more usecases or
-changing large components due to new insights. While a small amount of this is healthy and expected,
-there is a risk of it becoming too much.
-
-To counteract the effects of scope-creep I'll be creating concrete and testable success criteria with
-my supervisor. This way I can ask for ideas "is this in the success criteria?" and create a more informed
-decision about if I should continue on this idea.
+To limit the risks associated to scope-creep I will be making concrete steps and criteria. These
+will help when I have new ideas, since I can ask if it's truly necessary or should wait till later.
 
 = Supervision plan
 
 My responsible supervisor is, as mentioned before in @s1 Sebastian Feld.
 Also mentioned before my daily supervisor is Koen Mesman.
 
+I am meeting with my daily supervisor every week, and we're inviting the responsible supervisor
+to join as well. Depending on his ...
 
 
 = Project Planning
@@ -120,7 +126,7 @@ Also mentioned before my daily supervisor is Koen Mesman.
   week(1), [Review Literature],
   week(2), [Review Literature],
   week(3), [Review Literature],
-  week(4), [Review Literature],
+  week(4), [Review Literature], // written introduction
   week(5), [Plan project direction],
   week(6), [Holiday],
   week(7), [Holiday],
