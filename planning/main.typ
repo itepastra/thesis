@@ -111,7 +111,7 @@ My responsible supervisor is, as mentioned before in @s1 Sebastian Feld.
 Also mentioned before my daily supervisor is Koen Mesman.
 
 I am meeting with my daily supervisor every week, and we're inviting the responsible supervisor
-to join as well. Depending on his ...
+to join as well.
 
 
 = Project Planning
