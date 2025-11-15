@@ -67,7 +67,14 @@ fullest. This has to date not been shown to this extend
 
 = Research Question
 
-= Hypothesis
+Can hardware specific Quantum Ansatz Search improve the performance of variational quantum eigensolvers
+better than hardware agnostic alternatives?
+
+== Hypothesis
+
+We think that knowing about the hardware constraints helps with improving the search results since
+transpilation often degrades the performance of hardware agnostic ansatze which will not be necessary
+when using an ansatz specific to the hardware.
 
 = Data Management
 
