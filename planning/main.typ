@@ -124,7 +124,7 @@ to join as well.
 = Project Planning
 
 #let kickoff-day = datetime(day: 10, month:11, year:2025)
-#let week(offset) = [#(kickoff-day + duration(weeks: offset)).display("[month]/[day]") - #(kickoff-day + duration(weeks: offset, days: 6)).display("[month]/[day]")]
+#let week(offset) = [#(kickoff-day + duration(weeks: offset)).display("[month]/[day]") - #(kickoff-day + duration(weeks: offset, days: 6)).display("[day]/[month]")]
 
 #table(
   columns: (auto, auto),
