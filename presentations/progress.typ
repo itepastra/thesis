@@ -34,42 +34,64 @@
  ),
 )
 
-
-// References displayed like [1], [2] and captions to images
-// Introduction
-
-
-#title-slide()
-
 #show outline.entry: it => link(
   it.element.location(),
    text(fill: rgb("#00b3dc"), size: 1.3em)[#it.indented(it.prefix(), it.body())],
 )
 
 
-#outline(depth: 1, title: text(fill: rgb("#00a6d6"))[Content])
+== The Goal
 
-=
+#slide[
+  #align(center + horizon)[
+  #cetz-canvas({
+    import cetz.draw: *
+    let left = -9
+    let mid = 0
+    let right = 7
 
-== Context
+    content((left, 6), [Inputs])
+    content((mid, 6), [Process])
+    content((right, 6), anchor: "west", [Outputs])
 
-- VQE for NISQ
-- Ansatz $->$ big effect
-- QAS to optimize
-  - noise
-  - parameters
+    content((left, 3), [Qubits])
+    content((left, 2), [Gates])
+    content((left, 1), [Connections])
+    content((left, 0), text(fill: red)[Fidelities])
+    content((left, -1), [Expressibility])
+    content((left, -2), [Entanglement])
+    content((left, -3), text(fill: red)[Noise Treshold])
+    content((left, -4), text(fill: red)[Max Parameters])
 
-== Research Question
+    rect(cetz.vector.add((mid, 0), (-2, -2)), cetz.vector.add((mid, 0), (2, 2)), radius: (rest: .4), fill: rgb("#00b3dc"))
+    content((mid, 0), text(size: 4em)[?])
 
-#align(center + horizon)[
-  _
-  How can hardware knowledge about noise, connectivity and native gates
-  be used to improve the performance of Quantum Architecture Search 
-  for Variational Quantum Eigensolvers?
-  _
+    content((right, 3), [QML Kernels], anchor: "west")
+    content(cetz.vector.add((right, 2), (1, 0)), anchor: "west", [Balanced])
+    content(cetz.vector.add((right, 1), (1, 0)), anchor: "west", text(fill: red)[Best Expressibility])
+    content(cetz.vector.add((right, 0), (1, 0)), anchor: "west", text(fill: red)[Best Entanglement])
+    content(cetz.vector.add((right, -1), (1, 0)), anchor: "west", text(fill: red)[Least Noise])
+    content(cetz.vector.add((right, -2), (1, 0)), anchor: "west", text(fill: red)[Fewer Parameters])
+  })
+  ]
 ]
 
-== Planning
+== The Process
+
+- Cost function based on
+  - Expressibility
+  - Entanglement
+  - #text(fill: red)[Noise Treshold]
+  - #text(fill: red)[Max Parameters]
+
+- Possible Methods used for problem specific impls already
+  - Monte-Carlo Tree-Search
+  - Machine Learning (many options)
+  - Bayesian Optimization
+  - Differentiable Optimization strategies
+
+
+
 
 #let chev(start, len, f: none) = {
   import cetz.draw: *
@@ -85,17 +107,22 @@
 
 #let lg(color1, color2) = gradient.linear(color2, color1, color2, angle: 90deg)
 
+#let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
+
+
+== Planning
+
 #slide[
   #cetz-canvas({
     import cetz.draw: *
 
-    content((1, 0.1), anchor: "south", [today])
+    content((today-offset, 0), anchor: "south", [today])
+    line((today-offset, -0.5), (today-offset, -5), stroke: (paint: rgb("#ff00cc")))
 
     for x in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24) {
       content((x, 0), text(size: 12pt)[#(datetime(day: 10, month: 11, year: 2025) + duration(weeks: x)).display("[day]/[month]")], anchor: "north")
       line(stroke: (paint: lime, dash: "dashed"), (x, -0.5), (x,-5))
     }
-    line((1, -0.5), (1, -5), stroke: (paint: rgb("#ff00cc")))
 
     // yellow = literature
     // green = planning
