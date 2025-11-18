@@ -49,6 +49,7 @@
     let left = -9
     let mid = 0
     let right = 7
+    let arr_col = rgb("#00a6d6").lighten(70%)
 
     content((left, 6), [Inputs])
     content((mid, 6), [Process])
@@ -63,8 +64,32 @@
     content((left, -3), text(fill: red)[Noise Treshold])
     content((left, -4), text(fill: red)[Max Parameters])
 
+    line(
+      (-5.6, 0),
+      (-2.1, 0),
+      stroke: (
+        thickness: 8pt,
+        paint: arr_col,
+        cap: "round",
+      ),
+      mark: (end: "stealth", scale: 8, fill: arr_col),
+    )
+
+    content((0,0), [test])
+
     rect(cetz.vector.add((mid, 0), (-2, -2)), cetz.vector.add((mid, 0), (2, 2)), radius: (rest: .4), fill: rgb("#00b3dc"))
     content((mid, 0), text(size: 4em)[?])
+
+    line(
+      (2.4, 0),
+      (6.0, 0),
+      stroke: (
+        thickness: 8pt,
+        paint: arr_col,
+        cap: "round",
+      ),
+      mark: (end: "stealth", scale: 8, fill: arr_col),
+    )
 
     content((right, 3), [QML Kernels], anchor: "west")
     content(cetz.vector.add((right, 2), (1, 0)), anchor: "west", [Balanced])
@@ -84,7 +109,7 @@
   - #text(fill: red)[Noise Treshold]
   - #text(fill: red)[Max Parameters]
 
-- Possible Methods used for problem specific impls already
+- Possible Methods (not complete)
   - Monte-Carlo Tree-Search
   - Machine Learning (many options)
   - Bayesian Optimization
@@ -96,7 +121,7 @@
 #let chev(start, len, f: none) = {
   import cetz.draw: *
   line(fill: f,
-    cetz.vector.add(start,(-1 , -1))
+    cetz.vector.add(start,(-1, -1))
   , cetz.vector.add(start, (len - 1, -1))
   , cetz.vector.add(start,(len, 0))
   , cetz.vector.add(start, (len - 1, 1))
@@ -113,32 +138,34 @@
 == Planning
 
 #slide[
-  #cetz-canvas({
+  #cetz-canvas(length: 0.8cm, {
     import cetz.draw: *
 
+    let lower = -10
+
     content((today-offset, 0), anchor: "south", [today])
-    line((today-offset, -0.5), (today-offset, -5), stroke: (paint: rgb("#ff00cc")))
+    line((today-offset, -0.5), (today-offset, lower), stroke: (paint: rgb("#ff00cc")))
 
     for x in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24) {
-      content((x, 0), text(size: 12pt)[#(datetime(day: 10, month: 11, year: 2025) + duration(weeks: x)).display("[day]/[month]")], anchor: "north")
-      line(stroke: (paint: lime, dash: "dashed"), (x, -0.5), (x,-5))
+      content((x, 0), text(size: 0.4em)[#(datetime(day: 10, month: 11, year: 2025) + duration(weeks: x)).display("[day]/[month]")], anchor: "north")
+      line(stroke: (paint: lime, dash: "dashed"), (x, -0.5), (x,lower))
     }
 
     // yellow = literature
     // green = planning
     // blue = free
     // red = make thing
-    line((5.5, -0.5), (5.5, -5), stroke: (paint: rgb("#ff00cc")))
-    content((5.0, -5.1), anchor: "north", "Introduction")
+    line((5.5, -0.5), (5.5, lower), stroke: (paint: rgb("#ff00cc")))
+    content((5.0, lower - 0.1), anchor: "north", "Introduction")
 
-    line((14.5, -0.5), (14.5, -5), stroke: (paint: rgb("#ff00cc")))
-    content((14, -5.1), anchor: "north", "Midterm")
+    line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
+    content((14, lower - 0.1), anchor: "north", "Midterm")
 
     chev((0.6,-2), 6.6, f: lg(yellow, yellow.darken(10%)))
     chev((6.2,-2), 1.0, f: gradient.linear(green, rgb(0,0,0,0), angle: 60deg).sharp(3).repeat(6))
     content((1.1,-2), anchor: "west", "Literature")
     chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
-    content((7, -3.5), anchor: "north", "Holiday")
+    content((7.5, -3.5), anchor: "north", "Holiday")
 
     chev((9, -2), 6, f: lg(red, red.darken(10%)))
     content((10, -2), anchor: "west", "Make V1")
