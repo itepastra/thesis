@@ -39,6 +39,7 @@
    text(fill: rgb("#00b3dc"), size: 1.3em)[#it.indented(it.prefix(), it.body())],
 )
 
+= Week 3
 
 == The Goal
 
@@ -116,6 +117,34 @@
   - Differentiable Optimization strategies
 
 
+== State-of-the-art
+
+#slide[
+  #cetz-canvas({
+    import cetz.draw: *
+
+    line((0, 0.4), (0, 9), mark: (symbol: "stealth"))
+    content((-3, 4.5), anchor: "east", [Hardware])
+    content((-0.4, 1.0), anchor: "east", [agnostic])
+    content((-0.4, 8.0), anchor: "east", [specific])
+
+    line((0.4, 0), (9, 0), mark: (symbol: "stealth"))
+    content((5, -1.4), anchor: "north", [Task])
+    content((2, -0.4), anchor: "north", [agnostic])
+    content((8, -0.4), anchor: "north", [specific])
+
+
+    content((1.3, 2), text(size: 0.6em)[HEA@expressibility-and-entanglement])
+    content((1.2, 0.7), text(size: 0.6em)[Random])
+    content((9, 1), text(size: 0.6em)[UCCSD])
+    content((9, 4), text(size: 0.6em)[RL-VQE@akash])
+    content((7, 6), text(size: 0.6em)[HaQGNN@liu2025haqgnnhardwareawarequantumkernel])
+    content((8, 3), text(size: 0.6em)[Supernet@architecture-search])
+
+    circle((1.1, 7), radius: (1, 2.0), fill: rgb(0, 90, 180).lighten(40%))
+    content((1.1, 7), [Goal])
+  })
+]
 
 
 #let chev(start, len, f: none) = {
@@ -155,27 +184,31 @@
     // green = planning
     // blue = free
     // red = make thing
-    line((5.5, -0.5), (5.5, lower), stroke: (paint: rgb("#ff00cc")))
-    content((5.0, lower - 0.1), anchor: "north", "Introduction")
-
-    line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
-    content((14, lower - 0.1), anchor: "north", "Midterm")
-
-    chev((0.6,-2), 6.6, f: lg(yellow, yellow.darken(10%)))
-    chev((6.2,-2), 1.0, f: gradient.linear(green, rgb(0,0,0,0), angle: 60deg).sharp(3).repeat(6))
-    content((1.1,-2), anchor: "west", "Literature")
-    chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
-    content((7.5, -3.5), anchor: "north", "Holiday")
-
-    chev((9, -2), 6, f: lg(red, red.darken(10%)))
-    content((10, -2), anchor: "west", "Make V1")
-
-    chev((15.5, -2), 10.5, f: lg(red, red.darken(10%)))
-    content((15.5, -1.5), anchor: "west", "Improvements")
-    content((19.5, -2.5), anchor: "west", "Testing")
-
-    chev((15.5 + 10.5, -2), 2, f: lg(purple, purple.darken(10%)))
-    content((25.5, -3.5), anchor: "north", "Writing")
+    // line((5.5, -0.5), (5.5, lower), stroke: (paint: rgb("#ff00cc")))
+    // content((5.0, lower - 0.1), anchor: "north", "Introduction")
+    //
+    // line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
+    // content((14, lower - 0.1), anchor: "north", "Midterm")
+    //
+    // chev((0.6,-2), 6.6, f: lg(yellow, yellow.darken(10%)))
+    // chev((6.2,-2), 1.0, f: gradient.linear(green, rgb(0,0,0,0), angle: 60deg).sharp(3).repeat(6))
+    // content((1.1,-2), anchor: "west", "Literature")
+    // chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
+    // content((7.5, -3.5), anchor: "north", "Holiday")
+    //
+    // chev((9, -2), 6, f: lg(red, red.darken(10%)))
+    // content((10, -2), anchor: "west", "Make V1")
+    //
+    // chev((15.5, -2), 10.5, f: lg(red, red.darken(10%)))
+    // content((15.5, -1.5), anchor: "west", "Improvements")
+    // content((19.5, -2.5), anchor: "west", "Testing")
+    //
+    // chev((15.5 + 10.5, -2), 2, f: lg(purple, purple.darken(10%)))
+    // content((25.5, -3.5), anchor: "north", "Writing")
   })
+]
 
+#slide[
+  == References <touying:unoutlined>
+  #bibliography("references.bib", title: [])
 ]
