@@ -41,7 +41,17 @@
 
 = Week 3
 
-== The Goal
+== Outline
+
+#align(horizon)[
+Project plan
+
+State of the Art
+
+Planning
+]
+
+== The Plan
 
 #slide[
   #align(center + horizon)[
@@ -100,6 +110,7 @@
     content(cetz.vector.add((right, -2), (1, 0)), anchor: "west", text(fill: red)[Fewer Parameters])
   })
   ]
+  #text(fill: red)[red] text means it's a feature to focus on once the black points work
 ]
 
 == The Process
@@ -119,12 +130,12 @@
 
 == State-of-the-art
 
-#slide[
+#slide(composer: (auto, auto))[
   #cetz-canvas({
     import cetz.draw: *
 
     line((0, 0.4), (0, 9), mark: (symbol: "stealth"))
-    content((-3, 4.5), anchor: "east", [Hardware])
+    content((-3, 4.5), anchor: "south", [Hardware], angle: 90deg)
     content((-0.4, 1.0), anchor: "east", [agnostic])
     content((-0.4, 8.0), anchor: "east", [specific])
 
@@ -134,16 +145,31 @@
     content((8, -0.4), anchor: "north", [specific])
 
 
-    content((1.3, 2), text(size: 0.6em)[HEA@expressibility-and-entanglement])
-    content((1.2, 0.7), text(size: 0.6em)[Random])
-    content((9, 1), text(size: 0.6em)[UCCSD])
-    content((9, 4), text(size: 0.6em)[RL-VQE@akash])
-    content((7, 6), text(size: 0.6em)[HaQGNN@liu2025haqgnnhardwareawarequantumkernel])
-    content((8, 3), text(size: 0.6em)[Supernet@architecture-search])
+    circle((1.3, 2), radius: 0.1, fill: black)
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Hardware-Efficient Ansatz@expressibility-and-entanglement])
+    circle((1, 1), radius: 0.1, fill: black)
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Random circuit])
+    circle((7, 1), radius: 0.1, fill: black)
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Unitary Coupled-Cluster \ Singles and Doubles])
+    circle((9, 6), radius: 0.1, fill: black)
+    content((rel: (-0.3, -0.3)), anchor: "east", text(size: 0.6em)[Reinforcement-learning \ VQE@akash])
+    circle((7, 7), radius: 0.1, fill: black)
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Hardware-aware Quantum \ Graph Neural Network@liu2025haqgnnhardwareawarequantumkernel])
+    circle((8, 5), radius: 0.1, fill: black)
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Supernet@architecture-search])
 
     circle((1.1, 7), radius: (1, 2.0), fill: rgb(0, 90, 180).lighten(40%))
     content((1.1, 7), [Goal])
   })
+][
+  #align(horizon)[
+  Reasons for research:
+  - Fast start on new problem
+
+  - Hardware update cycle
+
+  - Use as a starting point
+  ]
 ]
 
 
@@ -167,6 +193,7 @@
 == Planning
 
 #slide[
+  #align(center + horizon)[
   #cetz-canvas(length: 0.8cm, {
     import cetz.draw: *
 
@@ -175,18 +202,27 @@
     content((today-offset, 0), anchor: "south", [today])
     line((today-offset, -0.5), (today-offset, lower), stroke: (paint: rgb("#ff00cc")))
 
-    for x in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24) {
+    for x in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33) {
       content((x, 0), text(size: 0.4em)[#(datetime(day: 10, month: 11, year: 2025) + duration(weeks: x)).display("[day]/[month]")], anchor: "north")
       line(stroke: (paint: lime, dash: "dashed"), (x, -0.5), (x,lower))
     }
 
-    // yellow = literature
-    // green = planning
-    // blue = free
-    // red = make thing
-    // line((5.5, -0.5), (5.5, lower), stroke: (paint: rgb("#ff00cc")))
-    // content((5.0, lower - 0.1), anchor: "north", "Introduction")
-    //
+
+    line((4, -0.5), (4, lower), stroke: (paint: rgb("#0000dc")))
+    content((5.4, lower - 0.1), anchor: "north", [Literature review \ of methods])
+
+    line((6.3, -0.5), (6.3, lower), stroke: (paint: rgb("#0000dc")))
+    content((6.3, lower - 2.9), anchor: "north", [Methodology \ Decision])
+
+    line((15.2, -0.5), (15.2, lower), stroke: (paint: rgb("#ff0000")))
+    content((15.2, lower - 0.1) ,anchor: "north", [Midterm])
+
+    line((28.2, -0.5), (28.2, lower), stroke: (paint: rgb("#ff0000")))
+    content((28.2, lower - 0.1) ,anchor: "north", [Greenlight])
+
+    line((32.8, -0.5), (32.8, lower), stroke: (paint: rgb("#ff0000")))
+    content((32.0, lower - 2.1), anchor: "north", [Finalisation])
+
     // line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
     // content((14, lower - 0.1), anchor: "north", "Midterm")
     //
@@ -205,7 +241,9 @@
     //
     // chev((15.5 + 10.5, -2), 2, f: lg(purple, purple.darken(10%)))
     // content((25.5, -3.5), anchor: "north", "Writing")
+    
   })
+  ]
 ]
 
 #slide[
