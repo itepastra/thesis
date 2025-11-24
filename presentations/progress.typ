@@ -179,7 +179,7 @@ Ways to improve:
 
 - Smarter sampling
 
-- Target expressibility instead of maximize
+- Target expressibility instead of HAAR distribution
 
 Parts to maybe re-use:
 
@@ -241,14 +241,16 @@ Parts to maybe re-use:
     line((32.8, -0.5), (32.8, lower), stroke: (paint: rgb("#ff0000")))
     content((32.0, lower - 2.1), anchor: "north", [Finalisation])
 
+
+
     // line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
     // content((14, lower - 0.1), anchor: "north", "Midterm")
     //
     // chev((0.6,-2), 6.6, f: lg(yellow, yellow.darken(10%)))
     // chev((6.2,-2), 1.0, f: gradient.linear(green, rgb(0,0,0,0), angle: 60deg).sharp(3).repeat(6))
     // content((1.1,-2), anchor: "west", "Literature")
-    // chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
-    // content((7.5, -3.5), anchor: "north", "Holiday")
+    chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
+    content((7.5, -3.5), anchor: "north", "Holiday")
     //
     // chev((9, -2), 6, f: lg(red, red.darken(10%)))
     // content((10, -2), anchor: "west", "Make V1")
