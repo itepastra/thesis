@@ -144,7 +144,6 @@ Planning
     content((2, -0.4), anchor: "north", [agnostic])
     content((8, -0.4), anchor: "north", [specific])
 
-
     circle((1.3, 2), radius: 0.1, fill: black)
     content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Hardware-Efficient Ansatz@expressibility-and-entanglement])
     circle((1, 1), radius: 0.1, fill: black)
@@ -160,6 +159,8 @@ Planning
 
     circle((1.1, 7), radius: (1, 2.0), fill: rgb(0, 90, 180).lighten(40%))
     content((1.1, 7), [Goal])
+    circle((1.3, 8), radius: 0.1, fill: black)
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Training-Free Search@training-free])
   })
 ][
   #align(horizon)[
@@ -172,6 +173,23 @@ Planning
   ]
 ]
 
+== Comparing with training-free Search@training-free
+
+Ways to improve:
+
+- Smarter sampling
+
+- Target expressibility instead of maximize
+
+Parts to maybe re-use:
+
+- Path-based proxy
+  - Very fast
+  - Approximates entanglement
+  - Filter out worst circuits
+
+- Benchmarking
+  - allows for apples-to-apples
 
 #let chev(start, len, f: none) = {
   import cetz.draw: *
@@ -208,8 +226,8 @@ Planning
     }
 
 
-    line((4, -0.5), (4, lower), stroke: (paint: rgb("#0000dc")))
-    content((5.4, lower - 0.1), anchor: "north", [Literature review \ of methods])
+    line((3.6, -0.5), (3.6, lower), stroke: (paint: rgb("#0000dc")))
+    content((5, lower - 0.1), anchor: "north", [Literature review \ of methods])
 
     line((6.3, -0.5), (6.3, lower), stroke: (paint: rgb("#0000dc")))
     content((6.3, lower - 2.9), anchor: "north", [Methodology \ Decision])
