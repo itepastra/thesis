@@ -39,6 +39,86 @@
    text(fill: rgb("#00b3dc"), size: 1.3em)[#it.indented(it.prefix(), it.body())],
 )
 
+#let chev(start, len, f: none) = {
+  import cetz.draw: *
+  line(fill: f,
+    cetz.vector.add(start,(-0.4, -1))
+  , cetz.vector.add(start, (len - 0.4, -1))
+  , cetz.vector.add(start,(len, 0))
+  , cetz.vector.add(start, (len - 0.4, 1))
+  , cetz.vector.add(start,(-0.4,1))
+  , start
+  , cetz.vector.add(start,(-0.4,-1)))
+}
+
+#let lg(color1, color2) = gradient.linear(color2, color1, color2, angle: 90deg)
+
+#let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
+
+= Week 4
+Training-Free QAS
+
+
+
+
+== Planning
+
+#slide[
+  #align(center + horizon)[
+  #cetz-canvas(length: 0.8cm, {
+    import cetz.draw: *
+
+    let lower = -10
+
+    content((today-offset, 0), anchor: "south", [today])
+    line((today-offset, -0.5), (today-offset, lower), stroke: (paint: rgb("#ff00cc")))
+
+    for x in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33) {
+      content((x, 0), text(size: 0.4em)[#(datetime(day: 10, month: 11, year: 2025) + duration(weeks: x)).display("[day]/[month]")], anchor: "north")
+      line(stroke: (paint: lime, dash: "dashed"), (x, -0.5), (x,lower))
+    }
+
+
+    line((3.6, -0.5), (3.6, lower), stroke: (paint: rgb("#0000dc")))
+    content((5, lower - 0.1), anchor: "north", [Literature review \ of methods])
+
+    line((6.3, -0.5), (6.3, lower), stroke: (paint: rgb("#0000dc")))
+    content((6.3, lower - 2.9), anchor: "north", [Methodology \ Decision])
+
+    line((15.2, -0.5), (15.2, lower), stroke: (paint: rgb("#ff0000")))
+    content((15.2, lower - 0.1) ,anchor: "north", [Midterm])
+
+    line((28.2, -0.5), (28.2, lower), stroke: (paint: rgb("#ff0000")))
+    content((28.2, lower - 0.1) ,anchor: "north", [Greenlight])
+
+    line((32.8, -0.5), (32.8, lower), stroke: (paint: rgb("#ff0000")))
+    content((32.0, lower - 2.1), anchor: "north", [Finalisation])
+
+
+
+    // line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
+    // content((14, lower - 0.1), anchor: "north", "Midterm")
+    //
+    // chev((0.6,-2), 6.6, f: lg(yellow, yellow.darken(10%)))
+    // chev((6.2,-2), 1.0, f: gradient.linear(green, rgb(0,0,0,0), angle: 60deg).sharp(3).repeat(6))
+    // content((1.1,-2), anchor: "west", "Literature")
+    chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
+    content((7.5, -3.5), anchor: "north", "Holiday")
+    //
+    // chev((9, -2), 6, f: lg(red, red.darken(10%)))
+    // content((10, -2), anchor: "west", "Make V1")
+    //
+    // chev((15.5, -2), 10.5, f: lg(red, red.darken(10%)))
+    // content((15.5, -1.5), anchor: "west", "Improvements")
+    // content((19.5, -2.5), anchor: "west", "Testing")
+    //
+    // chev((15.5 + 10.5, -2), 2, f: lg(purple, purple.darken(10%)))
+    // content((25.5, -3.5), anchor: "north", "Writing")
+    
+  })
+  ]
+]
+
 = Week 3
 
 == Outline
@@ -191,21 +271,6 @@ Parts to maybe re-use:
 - Benchmarking
   - allows for apples-to-apples
 
-#let chev(start, len, f: none) = {
-  import cetz.draw: *
-  line(fill: f,
-    cetz.vector.add(start,(-1, -1))
-  , cetz.vector.add(start, (len - 1, -1))
-  , cetz.vector.add(start,(len, 0))
-  , cetz.vector.add(start, (len - 1, 1))
-  , cetz.vector.add(start,(-1,1))
-  , start
-  , cetz.vector.add(start,(-1,-1)))
-}
-
-#let lg(color1, color2) = gradient.linear(color2, color1, color2, angle: 90deg)
-
-#let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
 
 == Planning
