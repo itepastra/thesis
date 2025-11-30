@@ -164,13 +164,49 @@ Following Neural Predictor based QAS@npqas
   - TensorCircuit python package@tensorcircuit
   #text(fill: red)[- No code included anywhere]
 
+== Proxy combinations
+
+#slide(composer: (auto, auto))[
+  - Only Path
+    - Fast proxy (each $~ 2 times 10^(-4) "s"$)
+    - Many queries (each $~ 10 "s"$)
+  
+  - Only Expressibility
+    - Slower proxy (each $~ 0.21 "s"$)
+    - Fewer queries
+
+  - Combined
+    - Fast proxy filtering
+    - Even fewer queries
+][
+  #image("tf-qas/table.png")
+  #text(size: 0.6em)[#align(right)[from Training-Free QAS@training-free]]
+]
+
+== Comparison with State of the Art
+
+#slide(composer: (1fr, auto))[
+#text(fill: purple)[- Where do these come from?]
+
+- A lot fewer queries
+
+- Shorter search times
+
+#text(fill: red)[- No ways to reproduce given]
+][
+  #image("tf-qas/outcomes.png", height: 85%)
+  #text(size: 0.6em)[#align(right)[from Training-Free QAS@training-free]]
+]
 
 = Conclusion
 
 ==
 
-- Combining proxies can improve on either
+- Combining proxies // can work better than seperately
 
+- Training-Free methods are promising
+
+#text(fill:red)[- Not reproducible]
 
 
 #slide[
