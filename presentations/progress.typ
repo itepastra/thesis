@@ -55,12 +55,62 @@
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
+= Week 5
+Methods of QAS
+
+== Training-Free QAS
+
+#slide()[
+  #align(center)[advantages]
+][
+  #align(center)[disadvantages]
+]
+
+== Reinforcement Learning QAS
+
+#slide()[
+  #align(center)[advantages]
+][
+  #align(center)[disadvantages]
+]
+
+== Graph Neural Network QAS
+
+#slide()[
+  #align(center)[advantages]
+][
+  #align(center)[disadvantages]
+]
+
+== Differentiable QAS
+
+#slide()[
+  #align(center)[advantages]
+][
+  #align(center)[disadvantages]
+]
+
+== Predictor based QAS
+
+#slide()[
+  #align(center)[advantages]
+][
+  #align(center)[disadvantages]
+]
+
+== Supernet based QAS
+
+#slide()[
+  #align(center)[advantages]
+][
+  #align(center)[disadvantages]
+]
+
 = Week 4
 
 == Presentation
 
 Training-Free QAS presentation #link("./tf-qas.pdf")[pdf]
-
 
 == Planning
 
