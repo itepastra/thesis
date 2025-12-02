@@ -56,9 +56,10 @@
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
 = Week 4
-Training-Free QAS
 
+== Presentation
 
+Training-Free QAS presentation #link("./tf-qas.pdf")[pdf]
 
 
 == Planning
