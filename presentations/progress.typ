@@ -39,16 +39,16 @@
    text(fill: rgb("#00b3dc"), size: 1.3em)[#it.indented(it.prefix(), it.body())],
 )
 
-#let chev(start, len, f: none) = {
+#let chev(start, len, f: none, offset: -0.4) = {
   import cetz.draw: *
   line(fill: f,
-    cetz.vector.add(start,(-0.4, -1))
-  , cetz.vector.add(start, (len - 0.4, -1))
+    cetz.vector.add(start,(offset, -1))
+  , cetz.vector.add(start, (len + offset, -1))
   , cetz.vector.add(start,(len, 0))
-  , cetz.vector.add(start, (len - 0.4, 1))
-  , cetz.vector.add(start,(-0.4,1))
+  , cetz.vector.add(start, (len + offset, 1))
+  , cetz.vector.add(start,(offset,1))
   , start
-  , cetz.vector.add(start,(-0.4,-1)))
+  , cetz.vector.add(start,(offset,-1)))
 }
 
 #let lg(color1, color2) = gradient.linear(color2, color1, color2, angle: 90deg)
@@ -94,27 +94,36 @@ Training-Free QAS
     line((32.8, -0.5), (32.8, lower), stroke: (paint: rgb("#ff0000")))
     content((32.0, lower - 2.1), anchor: "north", [Finalisation])
 
-
-
-    // line((14.5, -0.5), (14.5, lower), stroke: (paint: rgb("#ff00cc")))
-    // content((14, lower - 0.1), anchor: "north", "Midterm")
-    //
-    // chev((0.6,-2), 6.6, f: lg(yellow, yellow.darken(10%)))
-    // chev((6.2,-2), 1.0, f: gradient.linear(green, rgb(0,0,0,0), angle: 60deg).sharp(3).repeat(6))
-    // content((1.1,-2), anchor: "west", "Literature")
     chev((7, -2), 2, f: lg(blue.lighten(20%), blue.lighten(5%)))
     content((7.5, -3.5), anchor: "north", "Holiday")
-    //
-    // chev((9, -2), 6, f: lg(red, red.darken(10%)))
-    // content((10, -2), anchor: "west", "Make V1")
-    //
-    // chev((15.5, -2), 10.5, f: lg(red, red.darken(10%)))
-    // content((15.5, -1.5), anchor: "west", "Improvements")
-    // content((19.5, -2.5), anchor: "west", "Testing")
-    //
-    // chev((15.5 + 10.5, -2), 2, f: lg(purple, purple.darken(10%)))
-    // content((25.5, -3.5), anchor: "north", "Writing")
-    
+
+
+    chev((9, -2), 5.5, f: lg(green.lighten(20%), green.lighten(5%)))
+    content((11.5, -4.5), anchor: "north", "Making project")
+
+    chev((14, -7.8), 1.4, f: lg(red.lighten(20%), red.lighten(5%)))
+    content((15, -5.7), anchor: "north", "Midterm Prep")
+
+    chev((15, -2), 4, f: lg(green.lighten(20%), green.lighten(5%)))
+    content((16.5, -3.5), anchor: "north", "Finish project")
+
+    chev((19, -7), 1, f: orange)
+    content((19.5, -8.3), anchor: "north", "Feature Freeze")
+
+    chev((20, -2), 6, f: lg(green.lighten(20%), green.lighten(5%)))
+    content((21.5, -4.5), anchor: "north", "Data Gathering")
+
+    chev((22, -3), 7, f: lg(red.lighten(20%), red.lighten(5%)))
+    content((25.5, -5.5), anchor: "north", "Writing")
+
+    chev((29, -6), 2, f: lg(red.lighten(20%), red.lighten(5%)))
+    content((29.5, -7.5), anchor: "north", "Review V1")
+
+    chev((31, -2), 2, f: lg(red.lighten(20%), red.lighten(5%)))
+    content((31.5, -3.5), anchor: "north", "Final Fixes")
+
+    // chev((13, -2), 7, f: purple, offset: -3.0)
+    // content((14.5, -3.5), anchor: "north", [Surgery])
   })
   ]
 ]
