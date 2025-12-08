@@ -58,53 +58,99 @@
 = Week 5
 Methods of QAS
 
-== Training-Free QAS
+== Training-Free QAS@training-free
 
 #slide()[
   #align(center)[advantages]
+  - Proxies help with fast filtering
+  - Already uses expressibility like we want
+  - Does not need training for new hardware
 ][
   #align(center)[disadvantages]
+  - Naive algorithm
+    - Random sample
+    - Sort by proxy
+    - Sort by 2nd proxy
+    - Try optimising
+  - Noise systems not included
+  - Hardware connectivity only on random sampling
 ]
 
-== Reinforcement Learning QAS
+== Reinforcement Learning QAS@akash
 
 #slide()[
   #align(center)[advantages]
+  - Training on evaluation directly
+  - Easy constraints using _illegal actions_
+  - Only needs actions and fitness function
+  - Can gather its own data
+  - Noise included by data gathering method
 ][
   #align(center)[disadvantages]
+  - Needs significant time to train
+  - Currently only on problem specific
+    - directly on post optimisation output
 ]
 
-== Graph Neural Network QAS
+== Graph Neural Network QAS@liu2025haqgnnhardwareawarequantumkernel
 
 #slide()[
   #align(center)[advantages]
+  - Predict instead of evaluate
+    - Fidelity
+    - Classification accuracy
+  - fast filtering of random circuits
 ][
   #align(center)[disadvantages]
+  - GNNs need a lot to train
+  - Not directly generating good circuits
+  - GNN doesn't select best qubit cluster
+    - Done seperately beforehand
 ]
 
 == Differentiable QAS
 
 #slide()[
   #align(center)[advantages]
+  - Allows for Gradient Descent
+  - Can be tailored to specific hardware
 ][
   #align(center)[disadvantages]
+  - Paper focussed on QAOA, don't know about others
+  - Search is inherently Hamiltonian dependent
 ]
 
-== Predictor based QAS
+== Neural Predictor based QAS@npqas
 
 #slide()[
   #align(center)[advantages]
+  - circuit structure works on different qubit sizes
+  - significant efficiency gains over random search
+  - no parameter optimisation during search
+  - uses neural nets only as filter
 ][
   #align(center)[disadvantages]
+  - Also randomly samples circuits first like TF-QAS
+  - Has to attempt $O(100)$ ansatze before finding optimal
 ]
 
-== Supernet based QAS
+== (Supernet based) QAS@supernet-qas
 
 #slide()[
   #align(center)[advantages]
+  - Unifying noise inhibition and trainability
+  - No ancillary quantum resource
+  - Almost identical runtime to VQA-based
+  - Compatible with all platforms
+  - Integrates with other methods
+    - Error mitigation
+    - Barren plateau resolving
 ][
   #align(center)[disadvantages]
+  - Classical optimizer each sample
+  - Choice of supernet shape
 ]
+
 
 = Week 4
 
@@ -295,7 +341,7 @@ Planning
     circle((7, 7), radius: 0.1, fill: black)
     content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Hardware-aware Quantum \ Graph Neural Network@liu2025haqgnnhardwareawarequantumkernel])
     circle((8, 5), radius: 0.1, fill: black)
-    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Supernet@architecture-search])
+    content((rel: (0.3, 0)), anchor: "west", text(size: 0.6em)[Supernet@supernet-qas])
 
     circle((1.1, 7), radius: (1, 2.0), fill: rgb(0, 90, 180).lighten(40%))
     content((1.1, 7), [Goal])
