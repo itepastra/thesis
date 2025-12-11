@@ -149,14 +149,33 @@ Methods of QAS
   #align(center)[disadvantages]
   - Classical optimizer each sample
   - Choice of supernet shape
+  - Not 
 ]
 
+== Conclusion
 
-= Week 4
+Two main groups:
+- "Building the circuit":
+  Starts empty and gates are added
+- "Sampling and filtering"
+  Samples random circuits and uses proxies to filter
 
-== Presentation
+None of the QAS listed find an admissible circuit "in one shot" from what I can tell, 
+they all either optimise parameters as part of the search protocol or need 
+multiple outputs to be optimised until a good enough one is found.
 
-Training-Free QAS presentation #link("./tf-qas.pdf")[pdf]
+
+== Conclusion
+
+Likely better for us: "Sampling and Filtering"
+- Allows for sampling random "hardware-allowed" circuits
+- Expressibility and Entanglement are already both proxies we want to optimise
+- No need to train ML for every hardware architecture/
+  - Can still use ML to filter the sample, but this can be more hardware agnostic
+  #text(fill: orange)[
+  - Could maybe also train ML for "random" hardware architectures
+    to try and make it build admissible circuits in a transferable way but this is unexplored
+]
 
 == Planning
 
@@ -224,6 +243,13 @@ Training-Free QAS presentation #link("./tf-qas.pdf")[pdf]
   })
   ]
 ]
+
+= Week 4
+
+== Presentation
+
+Training-Free QAS presentation #link("./tf-qas.pdf")[pdf]
+
 
 = Week 3
 
