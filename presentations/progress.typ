@@ -244,6 +244,20 @@ Likely better for us: "Sampling and Filtering"
   ]
 ]
 
+== Shuffles
+
+The amount of shuffles where no shared neighbors before and after exist:
+
+- 16: 131072
+
+- 17: 8454144
+
+- 18: 174063616
+
+- 19: ???
+
+#image("./images/shuffles_file.jpg")
+
 = Week 4
 
 == Presentation
