@@ -73,7 +73,6 @@ Methods of QAS
     - Sort by 2nd proxy
     - Try optimising
   - Noise systems not included
-  - Hardware connectivity only on random sampling
 ]
 
 == Reinforcement Learning QAS@akash
@@ -248,11 +247,11 @@ Likely better for us: "Sampling and Filtering"
 
 The amount of shuffles where no shared neighbors before and after exist:
 
-- 16: 131072
+- 16: $131072 = 2^17$
 
-- 17: 8454144
+- 17: $8454144 approx 2^23.01$
 
-- 18: 174063616
+- 18: $174063616 approx 2^27.38$
 
 - 19: ???
 
