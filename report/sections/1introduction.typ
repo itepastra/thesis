@@ -5,15 +5,27 @@
 
 = Introduction
 
-== Before starting
-Okay, so as far as I currently know a Variational Quantum Eigensolver (VQE) is a semi-quantum way to find eigenvalues
-for a matrix.
-They currently are mostly using Hardware Efficient Ansatze. // TODO: needs facts
-These Ansatze are optimized for relatively small connectivity, and don't keep errors into account that much.
-I want to figure out if this can be done better, by using a descriptor format of the hardware including connections
-between qubits etc. is it possible to make ansatze that are better in
-- fewer parameters
-- less error prone
-- speed of optimisation
+In the NISQ era quantum-classical hybrid methods are better due to the limited depth, bla bla bla
 
-That is what I will go and try figuring out I think
+There has been significant research into various methods of Quantum Architecture Search (QAS), 
+(list a bunch).
+Most of these have been searches that are specific to the problem that is being solved,
+so the Paremetrized quantum circuits (PQCs) are generally not transferrable between different problems.
+
+There has also been a bit of research into task-agnostic QAS, where search
+can be performed once per hardware iteration instead of per problem, using proxies like expressibility
+and entanglement (CITE THE PAPER). 
+Where maybe some finetuning can help specialise into a specific problem afterwards. (HYPOTHETICAL)
+
+These task-agnostic searches have yet to include things like noise, arbitrary connectivity graphs
+and allowed gate types on a per-qubit basis. And also haven't shown great scalability to architectures
+with more qubits.
+
+This research proposes a Task-Agnostic Evolutionary QAS implementing 
+hardware constraints and noise profiles able to target circuits with a 
+user-specified expressibility and entanglement to be able to mitigate the barren plateaus from
+an expressibility that's too high (cite).
+
+To achieve these goals a python library will be made that allows for composing various filters
+and generators together (with multithreading) to help with developing and iterating on QAS methods.
+
