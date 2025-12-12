@@ -212,7 +212,6 @@ Methods of QAS
   #align(center)[disadvantages]
   - Classical optimizer each sample
   - Choice of supernet shape
-  - Not 
 ]
 
 == Conclusion
@@ -239,6 +238,15 @@ Likely better for us: "Sampling and Filtering"
   - Could maybe also train ML for "random" hardware architectures
     to try and make it build admissible circuits in a transferable way but this is unexplored
 ]
+
+== Together Conclusion
+
+- Sample using Evolutionary Algorithms versus Random Sampling
+
+- Create proxy for Noise
+
+- Improve path based proxy to be an entanglement proxy directly
+  - OR machine learning some proxy that does a similar thing
 
 == Planning
 
