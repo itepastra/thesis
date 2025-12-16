@@ -55,6 +55,70 @@
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
+= Week 6
+The plan
+
+== Evolutionary algorithms
+
+High level protocol:
+1. Generate a random population
+2. Evaluate the fitness
+3. Select the better individuals
+4. Produce offsprint
+5. Repeat until goal reached at 2
+
+Generally Genetic Algorithms but alternatives exist
+
+== Genetic Algorithm
+
+Each item in the population has genes,
+these combine and mutate to produce offspring.
+
+Assumes some kind of "building blocks"
+
+Tends to local optimum instead of global
+
+== Genetic Algorithms for QAS
+
+Population tends to local optimum \
+$->$ risk for circuits with similar "area" of expressibility
+
+We want diversity in the final circuits \
+$->$ probability of at least one having high expressibility in solution area
+
+Limit offspring mutations \
+$->$ Need to keep offspring within hardware constraints
+
+== Implemented Genetic Algorithms for QAS
+
+Applied in Arxiv submission "Genetic optimization of ansatz 
+expressibility for enhanced variational quantum algorithm 
+performance."@genetic-expressibility
+
+Does:
+- Problem agnostic QAS
+- Depth limiting as noise limit
+
+However:
+- No noise simulation *or* proxy
+- Maximising expressibility instead of target
+- Entanglement not included at all
+
+== What I will be doing
+
+1. Reproduce parts of the paper@genetic-expressibility mentioned before
+   to have a baseline and something to benchmark against.
+   As it is closer to what we discussed as TF-QAS@training-free is.
+2. Hardware constraints
+    - Qubit connectivity
+    - Per-qubit gate types (for NV-centers etc.)
+    - Scheduling constraints
+3. Add more proxies
+    - Entanglement
+    - Noise/Fidelity
+    - Trainability (maybe)
+4. Test (first simulation, then hardware if possible)
+
 = Week 5
 Methods of QAS
 
