@@ -5,27 +5,46 @@
 
 = Introduction
 
-In the NISQ era quantum-classical hybrid methods are better due to the limited depth, bla bla bla
+Quantum computers capable of performing the widely recognised algorithms 
+like Shor's factorisation algorithm // TODO: cite
+and large data Grovers Search // TODO: cite
+are not techonologically feasible yet. // TODO: add citations
 
-There has been significant research into various methods of Quantum Architecture Search (QAS), 
-(list a bunch).
-Most of these have been searches that are specific to the problem that is being solved,
-so the Paremetrized quantum circuits (PQCs) are generally not transferrable between different problems.
+This is due to the current quantum computers still having noisy qubits that which limits
+the circuit depth of algorithms that can be performed. They also have a limited amout of qubits,
+which is why this era of quantum computing is called the Noisy Intermediate-Scale Quantum (NISQ) era.
 
-There has also been a bit of research into task-agnostic QAS, where search
-can be performed once per hardware iteration instead of per problem, using proxies like expressibility
-and entanglement (CITE THE PAPER). 
-Where maybe some finetuning can help specialise into a specific problem afterwards. (HYPOTHETICAL)
+This does not mean there are no uses for these NISQ quantum computers,
+Quantum Machine Learning and other quantum-classical methods are still promising prospects.
+Diverse real-world practical capabilities have been demonstrated like // TODO: list with citations
 
-These task-agnostic searches have yet to include things like noise, arbitrary connectivity graphs
-and allowed gate types on a per-qubit basis. And also haven't shown great scalability to architectures
-with more qubits.
+The quantum-classical methods start with a quantum circuit that contains some amount of parametrized
+gates, called Parametrized Quantum Circuits or PQCs for short. This PQC is used with a training set
+where a classical computer takes measurement results and optimises the parameters to solve a problem.
 
-This research proposes a Task-Agnostic Evolutionary QAS implementing 
-hardware constraints and noise profiles able to target circuits with a 
-user-specified expressibility and entanglement to be able to mitigate the barren plateaus from
-an expressibility that's too high (cite).
+// TODO: find some way to explain why QAS is necessary here
 
-To achieve these goals a python library will be made that allows for composing various filters
-and generators together (with multithreading) to help with developing and iterating on QAS methods.
+To address these challenges methods have been proposed for automatically finding the PQC,
+also known as Quantum Architecture Search (QAS), 
+which can solve the problem like: ... // TODO: list with citations
 
+Most of these solutions evaluate performance of the circuit with optimisation during the search,
+these classical optimisations take a significant amount of time and are therefore not very scalable.
+// TODO: add citations
+Some of the solutions /* TODO: add citations to TF-QAS and evolutionary expressibility */ use
+proxies to optimize a PQC without any quantum-classical optimization, however they do not implement
+hardware constraints and noise patterns which may limit their applicability on real hardware.
+
+To address these limitations we propose QD-QAS, // Quality-Diversity Quantum Architecture Search
+a problem-agnostic yet hardware-specific quantum architecture search based on hardware topology,
+noise patters and gatesets.
+
+// These are just goals atm, but can be made concrete once I did them
+- We use Quality-Diversity Evolutionary Algorithms trained using proxies for Expressibility,
+  Entanglement, and Noise to create a diverse set of PQCs to make sure every problem has a
+  PQC that works well.
+- We benchmark this algorithm on both runtime and performance in against, TF-QAS@training-free,
+  Random Sampling and GA-QAS@genetic-expressibility. Since both TF-QAS and GA-QAS don't include
+  noise but QD-QAS does we will compare under multiple types and amounts of noise.
+- We also develop an open-source python library to efficiently work with Evolutionary algorithms 
+  combined with various proxies that is easily extendable to new usecases.

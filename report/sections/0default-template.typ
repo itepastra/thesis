@@ -94,7 +94,7 @@ Tables and images can be inserted into the document via the `#figure` function. 
 == Referencing stuff <sec:refs>
 
 Tables, Figures and Equations are numbered by section. When refering to one of these items, the number becomes green (color is customizable). For example, this is @sec:refs and the afterwards we have @subsec:chem. For figures, it is possible to attach an additional supplement to a figure, for example @fig:large-image could have subpanels like @fig:large-image[a], which you can specify via ```typ @fig:label[a]```.
-References are formatted as @yamanaka_nanoscale_2000. Several references are joined according to @asmatulu_characterization_2019@binnig_atomic_1986@boussinesq_application_1885.
+References are formatted as. Several references are joined according to.
 
 === Chemical formula <subsec:chem>
 
