@@ -64,7 +64,7 @@ High level protocol:
 1. Generate a random population
 2. Evaluate the fitness
 3. Select the better individuals
-4. Produce offsprint
+4. Produce offspring
 5. Repeat until goal reached at 2
 
 Generally Genetic Algorithms but alternatives exist
@@ -106,9 +106,7 @@ However:
 
 == What I will be doing
 
-1. Reproduce parts of the paper@genetic-expressibility mentioned before
-   to have a baseline and something to benchmark against.
-   As it is closer to what we discussed as TF-QAS@training-free is.
+1. Implement Quality-Diversity evolutionary Algorithm that does sampling of the gate space
 2. Hardware constraints
     - Qubit connectivity
     - Per-qubit gate types (for NV-centers etc.)

@@ -16,7 +16,7 @@
 
 #show: university-theme.with(
   config-info(
-    title: "Implementation Specific QAS", // Required
+    title: "Training-Free QAS", // Required
     date: datetime.today().display(),
     authors: ("Noa Aarts"),
   
