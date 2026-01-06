@@ -38,6 +38,10 @@
           default = pkgs.mkShellNoCC {
             packages = [
               pkgs.typst
+              (pkgs.python3.withPackages (ppkgs: [
+                ppkgs.numpy
+                ppkgs.tqdm
+              ]))
             ];
           };
         }

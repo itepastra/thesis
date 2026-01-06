@@ -2,7 +2,10 @@
 What I'll be making is a program that uses a Hardware discriptor 
 -like the one exported by qiskit- together with a target expressibility, 
 target entanglement, and a minimal Fidelity to produce a 
-diverse set of Parametrised Quantum Circuits. 
+diverse set of Parametrised Quantum Circuits (PQCs). 
+Unlike previous training free Quantum Architecture Searches@training-free@evolutionary-architecture-search
+we will make the search hardware-specific while also keeping it training-free 
+and target a specific expressibility instead of just maximizing to help mitigate barren plateaus.
 The program will be using one of the Quality-Diversity Evolutionary Algorithms@qdea to achieve this,
 the quality aspect will use the Expressibility, Entanglement, and simulated Noise -or proxies for these-
 to determine the Quality, while some measure of distance between different expressible Hilbert Spaces
