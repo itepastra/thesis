@@ -1,3 +1,6 @@
+
+#title("Quality-Diversity Quantum Architecture Search")
+
 = Introduction
 The goal of this project is to make a program that uses a Hardware discriptor 
 -like the one exported by qiskit- together with a target expressibility, 
