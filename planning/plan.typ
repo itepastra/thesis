@@ -1,4 +1,3 @@
-
 #title("Quality-Diversity Quantum Architecture Search")
 
 = Introduction

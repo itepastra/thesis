@@ -2,7 +2,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     typst = {
-      url = "github:typst/typst";
+      url = "github:typst/typst-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -21,7 +21,7 @@
           system:
           f {
             inherit system;
-            typst = typst.packages.${system};
+            typ = typst.packages.${system};
             pkgs = import nixpkgs { inherit system; };
           }
         );
@@ -30,17 +30,19 @@
       devShells = forAllSystems (
         {
           pkgs,
-          typst,
+          typ,
           system,
           ...
         }:
         {
           default = pkgs.mkShellNoCC {
             packages = [
-              pkgs.typst
+              typ.default
               (pkgs.python3.withPackages (ppkgs: [
                 ppkgs.numpy
                 ppkgs.tqdm
+                ppkgs.qiskit
+                ppkgs.qiskit-aer
               ]))
             ];
           };
