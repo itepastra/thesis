@@ -598,6 +598,7 @@ def main():
 
         gt_seed_stream = random.Random(args.seed + 1234567)
         queried = 0
+        min_error = float("inf")
         for i, circ in enumerate(tqdm(final_circuits, desc="ground-truth queries")):
             if queried >= args.gt_budget:
                 break
@@ -611,6 +612,8 @@ def main():
                 max_steps=args.gt_max_steps,
                 tol=args.gt_tol,
             )
+            if circ.gt_error is not None and circ.gt_error < min_error:
+                print(f"new best error for {queried}: {circ.gt_error}")
             queried += 1
             if circ.gt_success:
                 success_idx = i
