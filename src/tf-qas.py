@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import json
 from dataclasses import dataclass
 from enum import IntEnum
 from multiprocessing import Pool
@@ -30,6 +31,9 @@ class Gate:
     qubits: int | tuple[int, int]
     param_idx: int
 
+    def to_json(self):
+        return {"type": self.type, "qubits": self.qubits, "param_idx": self.param_idx}
+
 
 def haar_fidelity_pdf(F: np.ndarray, d: int) -> np.ndarray:
     # p(F) = (d-1) * (1-F)^(d-2), for F in [0,1]
@@ -49,7 +53,7 @@ class QuantumCircuit:
     two_qubit_gates: int
     params: int
     paths: int = 0
-    expressibility: float = float("inf")
+    expressibility: float = float("-inf")
 
     def calculate_paths(self):
         path_counts = [1 for _ in range(self.qubits)]
@@ -62,6 +66,15 @@ class QuantumCircuit:
                 path_counts[q2] = path_counts[q1]
 
         self.paths = sum(path_counts)
+
+    def to_json(self):
+        return {
+            "qubits": self.qubits,
+            "gates": [[gate.to_json() for gate in layer] for layer in self.gates],
+            "params": self.params,
+            "paths": self.paths,
+            "expressibility": self.expressibility,
+        }
 
     def to_qiskit(self):
         qc = QiskitCircuit(self.qubits)
@@ -227,7 +240,7 @@ def more_single_than_double(qc: QuantumCircuit) -> bool:
 
 if __name__ == "__main__":
     rng = random.Random()
-    qubits = 6
+    qubits = 4
     depth = 15
     sample_amount = 50000
     expressibility_samples = 2000
@@ -259,6 +272,9 @@ if __name__ == "__main__":
         ):
             final_circuits.append(circ)
 
-    final_circuits.sort(key=lambda qc: qc.expressibility)
-    for i, circuit in enumerate(final_circuits):
+    final_circuits.sort(key=lambda qc: qc.expressibility, reverse=True)
+    for i, circuit in enumerate(final_circuits[::-1]):
         print(f"circuit {i}:\n{circuit}")
+
+    with open("dump.json", "w+") as fp:
+        json.dump([c.to_json() for c in final_circuits], fp, indent=4)
