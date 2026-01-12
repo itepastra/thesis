@@ -160,7 +160,10 @@ class QuantumCircuit:
         nexp = 2 * samples
         # vectorized binds: one circuit, many parameter values
         binds: list[dict[ParameterVectorElement, list[float]]] = [
-            {param: [rng.random() for _ in range(nexp)] for param in thetas.params}
+            {
+                param: [rng.random() * 4 * math.pi - 2 * math.pi for _ in range(nexp)]
+                for param in thetas.params
+            }
         ]
 
         job = backend.run([tqc], parameter_binds=binds)
