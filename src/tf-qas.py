@@ -136,7 +136,7 @@ class QuantumCircuit:
         q = q / q.sum()
 
         kl = kl_divergence(p, q)
-        self.expressibility = kl
+        self.expressibility = -kl
         return self
 
     @override
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     rng = random.Random()
     qubits = 6
     depth = 15
-    sample_amount = 5000
+    sample_amount = 50000
     expressibility_samples = 2000
     proxy_pass_amount = 5000
     circuits = (
