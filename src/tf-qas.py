@@ -259,6 +259,8 @@ def sample_circuit(rng: random.Random, qubits: int, depth: int) -> QuantumCircui
 
     gates: list[list[Gate]] = []
     for _ in range(depth):
+        if total_single + total_double >= 36:
+            break
         gate_type_offset = 3 if rng.random() < TWO_QUBIT_GATE_PROBABILITY else 0
         gate_type = rng.randint(1, 3)
         gate_locations = even if rng.random() < 0.5 else odd
