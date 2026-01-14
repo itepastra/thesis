@@ -261,24 +261,21 @@ def sample_circuit(rng: random.Random, qubits: int, depth: int) -> QuantumCircui
     for _ in range(depth):
         if total_single + total_double >= 36:
             break
-        gate_type_offset = 3 if rng.random() < TWO_QUBIT_GATE_PROBABILITY else 0
-        gate_type = rng.randint(1, 3)
+
         gate_locations = even if rng.random() < 0.5 else odd
 
-        if gate_type_offset == 0:
-            gates.append(
-                [Gate(GateType(gate_type), x, params) for (x, _) in gate_locations]
-            )
-            total_single += len(gate_locations)
-        else:
-            gates.append(
-                [
-                    Gate(GateType(gate_type + gate_type_offset), xy, params)
-                    for xy in gate_locations
-                    if xy[1] != qubits
-                ]
-            )
-            total_double += len(gate_locations)
+        layer = []
+        for loc in gate_locations:
+            gate_type = rng.randint(1, 6)
+            if gate_type >= 4:
+                if loc[1] == qubits:
+                    continue
+                layer.append(Gate(GateType(gate_type), loc, params))
+                total_double += 1
+            else:
+                layer.append(Gate(GateType(gate_type), loc[0], params))
+                total_single += 1
+        gates.append(layer)
         params += 1
 
     return QuantumCircuit(qubits, gates, total_single, total_double, params)
