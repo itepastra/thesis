@@ -25,20 +25,39 @@ class GateType(IntEnum):
     CZ = 8
     CRX = 9
     H = 10
+    I = 11
+
+
+def single_typ(typ: GateType) -> bool:
+    match typ:
+        case GateType.I | GateType.H | GateType.RX | GateType.RY | GateType.RZ:
+            return True
+        case (
+            GateType.RXX
+            | GateType.RYY
+            | GateType.RZZ
+            | GateType.CX
+            | GateType.CZ
+            | GateType.CRX
+        ):
+            return False
 
 
 @dataclass(frozen=True)
 class Gate:
-    type: GateType
+    typ: GateType
     qubits: int | tuple[int, int]
     param_idx: int
 
     def to_json(self):
         return {
-            "type": int(self.type),
+            "type": int(self.typ),
             "qubits": self.qubits,
             "param_idx": self.param_idx,
         }
+
+    def single(self) -> bool:
+        return single_typ(self.typ)
 
 
 def haar_fidelity_pdf(F: np.ndarray, d: int) -> np.ndarray:
@@ -71,7 +90,7 @@ class QuantumCircuit:
         path_counts = [1 for _ in range(self.qubits)]
         for layer in self.gates:
             for gate in layer:
-                if gate.type <= 3 or isinstance(gate.qubits, int):
+                if gate.typ <= 3 or isinstance(gate.qubits, int):
                     continue
                 (q1, q2) = gate.qubits
                 # same logic as your existing file
@@ -99,33 +118,35 @@ class QuantumCircuit:
 
         for layer in self.gates:
             for gate in layer:
-                if gate.type == GateType.RX:
+                if gate.typ == GateType.RX:
                     theta = thetas[gate.param_idx]
                     qc.rx(theta, gate.qubits)
-                elif gate.type == GateType.RY:
+                elif gate.typ == GateType.RY:
                     theta = thetas[gate.param_idx]
                     qc.ry(theta, gate.qubits)
-                elif gate.type == GateType.RZ:
+                elif gate.typ == GateType.RZ:
                     theta = thetas[gate.param_idx]
                     qc.rz(theta, gate.qubits)
-                elif gate.type == GateType.H:
+                elif gate.typ == GateType.H:
                     qc.h(gate.qubits)
-                elif gate.type == GateType.RXX:
+                elif gate.typ == GateType.I:
+                    qc.id(gate.qubits)
+                elif gate.typ == GateType.RXX:
                     theta = thetas[gate.param_idx]
                     qc.rxx(theta, *gate.qubits)
-                elif gate.type == GateType.RYY:
+                elif gate.typ == GateType.RYY:
                     theta = thetas[gate.param_idx]
                     qc.ryy(theta, *gate.qubits)
-                elif gate.type == GateType.RZZ:
+                elif gate.typ == GateType.RZZ:
                     theta = thetas[gate.param_idx]
                     qc.rzz(theta, *gate.qubits)
-                elif gate.type == GateType.CX:
+                elif gate.typ == GateType.CX:
                     qc.cx(*gate.qubits)
-                elif gate.type == GateType.CRX:
+                elif gate.typ == GateType.CRX:
                     theta = thetas[gate.param_idx]
                     qc.crx(theta, *gate.qubits)
                 else:
-                    raise ValueError(f"Unknown gate type: {gate.type}")
+                    raise ValueError(f"Unknown gate type: {gate.typ}")
         return qc, thetas
 
     def to_qiskit_for_expressibility(self) -> tuple[QiskitCircuit, ParameterVector]:
@@ -205,7 +226,7 @@ class QuantumCircuit:
 
             idx = 0
             for gate in layer:
-                match gate.type:
+                match gate.typ:
                     case GateType.RX:
                         strs[gate.qubits] = strs[gate.qubits][:-2] + "RX"
                     case GateType.RY:
@@ -311,23 +332,23 @@ def circ_from_layers(layers: list[list[Gate]], qubits: int) -> QuantumCircuit:
     for layer in layers:
         new_layer = []
         for gate in layer:
-            match gate.type:
+            match gate.typ:
                 case GateType.H:
-                    new_layer.append(Gate(gate.type, gate.qubits, params))
+                    new_layer.append(Gate(gate.typ, gate.qubits, params))
                     total_single += 1
                 case GateType.RX | GateType.RY | GateType.RZ:
-                    new_layer.append(Gate(gate.type, gate.qubits, params))
+                    new_layer.append(Gate(gate.typ, gate.qubits, params))
                     params += 1
                     total_single += 1
                 case GateType.RXX | GateType.RYY | GateType.RZZ:
-                    new_layer.append(Gate(gate.type, gate.qubits, params))
+                    new_layer.append(Gate(gate.typ, gate.qubits, params))
                     params += 1
                     total_double += 1
                 case GateType.CX | GateType.CZ:
-                    new_layer.append(Gate(gate.type, gate.qubits, params))
+                    new_layer.append(Gate(gate.typ, gate.qubits, params))
                     total_double += 1
                 case GateType.CRX:
-                    new_layer.append(Gate(gate.type, gate.qubits, params))
+                    new_layer.append(Gate(gate.typ, gate.qubits, params))
                     params += 1
                     total_double += 1
         gates.append(new_layer)
@@ -335,7 +356,7 @@ def circ_from_layers(layers: list[list[Gate]], qubits: int) -> QuantumCircuit:
 
 
 def sample_circuit_random(
-    rng: random.Random, qubits: int, depth: int
+    rng: random.Random, qubits: int, depth: int, gate_types: list[GateType]
 ) -> QuantumCircuit:
     params = 0
     total_single = 0
@@ -349,14 +370,9 @@ def sample_circuit_random(
             if loc in used_qubits:
                 continue
             gate_type = rng.choice(
-                [
-                    GateType.RX,
-                    GateType.RY,
-                    GateType.RZ,
-                    GateType.CX,
-                    GateType.CRX,
-                    GateType.H,
-                ]
+                gate_types
+                if loc + 1 < qubits
+                else [typ for typ in gate_types if single_typ(typ)]
             )
             match gate_type:
                 case GateType.H:
@@ -368,13 +384,13 @@ def sample_circuit_random(
                     params += 1
                     total_single += 1
                     used_qubits.add(loc)
-                case GateType.RXX | GateType.RYY | GateType.RZZ if loc + 1 < qubits:
+                case GateType.RXX | GateType.RYY | GateType.RZZ:
                     layer.append(Gate(gate_type, (loc, loc + 1), params))
                     params += 1
                     total_double += 1
                     used_qubits.add(loc)
                     used_qubits.add(loc + 1)
-                case GateType.CX | GateType.CZ if loc + 1 < qubits:
+                case GateType.CX | GateType.CZ:
                     layer.append(
                         Gate(
                             gate_type,
@@ -385,7 +401,7 @@ def sample_circuit_random(
                     total_double += 1
                     used_qubits.add(loc)
                     used_qubits.add(loc + 1)
-                case GateType.CRX if loc + 1 < qubits:
+                case GateType.CRX:
                     layer.append(
                         Gate(
                             gate_type,
@@ -404,6 +420,8 @@ def sample_circuit_random(
     return QuantumCircuit(qubits, gates, total_single, total_double, params)
 
 
-def sample_random_generator(rng: random.Random, qubits: int, depth: int):
+def sample_random_generator(
+    rng: random.Random, qubits: int, depth: int, gates: list[GateType]
+):
     while True:
-        yield sample_circuit_random(rng, qubits, depth)
+        yield sample_circuit_random(rng, qubits, depth, gates)

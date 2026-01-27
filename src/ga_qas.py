@@ -20,10 +20,20 @@ PARENT_AMOUNT = 5
 MUTATION_RATE = 0.1
 
 
+gate_set = [
+    GateType.H,
+    GateType.RX,
+    GateType.RY,
+    GateType.RZ,
+    GateType.CRX,
+    GateType.CX,
+]
+
+
 def main():
     seed_rng = random.Random(1020381)
     initial_population: list[QuantumCircuit] = (
-        Stream(sample_random_generator(random.Random(101020), QUBITS, DEPTH))
+        Stream(sample_random_generator(random.Random(101020), QUBITS, DEPTH, gate_set))
         .apply(lambda circ: print(circ))
         .apply(
             lambda circ: circ.expressibility_estimate(
@@ -55,23 +65,20 @@ def main():
                 layer = child_layers[layer_idx]
                 gate_idx = main_rng.randrange(len(layer))
                 old_gate = child_layers[layer_idx][gate_idx]
-                match old_gate.type:
-                    case GateType.H | GateType.RX | GateType.RY | GateType.RZ:
-                        child_layers[layer_idx][gate_idx] = Gate(
-                            main_rng.choice(
-                                [GateType.H, GateType.RX, GateType.RY, GateType.RZ]
-                            ),
-                            old_gate.qubits,
-                            old_gate.param_idx,
-                        )
-                    case GateType.CRX | GateType.CX:
-                        child_layers[layer_idx][gate_idx] = Gate(
-                            old_gate.type,
-                            tuple(old_gate.qubits[::-1]),
-                            old_gate.param_idx,
-                        )
-                    case _:
-                        print(f"unhandled gate: {old_gate}")
+
+                if old_gate.single():
+                    child_layers[layer_idx][gate_idx] = Gate(
+                        main_rng.choice(gate_set),
+                        old_gate.qubits,
+                        old_gate.param_idx,
+                    )
+                else:
+                    child_layers[layer_idx][gate_idx] = Gate(
+                        old_gate.typ,
+                        tuple(old_gate.qubits[::-1]),
+                        old_gate.param_idx,
+                    )
+
             child = circ_from_layers(child_layers, QUBITS)
             child.expressibility_estimate(2000, seed_rng.randint(1000, 1000000000))
             offspring.append(child)
