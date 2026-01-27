@@ -3,6 +3,7 @@
 # "Genetic optimization of ansatz expressibility for enhanced variational quantum algorithm performance"
 
 import random
+from typing import Generator, Never
 
 import matplotlib.pyplot as plt
 
@@ -30,7 +31,7 @@ gate_set: list[GateType] = [
 
 def sample_hyperspace(
     *args: tuple[int, int] | tuple[float, float], seed: int = 2010392991
-):
+) -> Generator[tuple[float | int, ...], None, Never]:
     minimums: tuple[float | int, ...] = tuple(arg[0] for arg in args)
     maximums: tuple[float | int, ...] = tuple(arg[1] for arg in args)
     diffs: tuple[float | int, ...] = tuple(
