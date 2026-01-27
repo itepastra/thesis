@@ -28,6 +28,14 @@ gate_set: list[GateType] = [
 ]
 
 
+def sample_hyperspace(*args: tuple[int, int] | tuple[float, float]):
+    minimums: list[float | int] = [arg[0] for arg in args]
+    maximums: list[float | int] = [arg[1] for arg in args]
+
+    while True:
+        yield ()
+
+
 def plot_best_circuits(best_circuits: list[QuantumCircuit]) -> None:
     fig, ax = plt.subplots()
 
