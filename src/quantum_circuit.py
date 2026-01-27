@@ -1,11 +1,12 @@
-from dataclasses import dataclass
 import math
 import random
-from typing import override
-import numpy as np
+from dataclasses import dataclass
 from enum import IntEnum
+from typing import override
 
-from qiskit import QuantumCircuit as QiskitCircuit, transpile
+import numpy as np
+from qiskit import QuantumCircuit as QiskitCircuit
+from qiskit import transpile
 from qiskit.circuit import ParameterVector, ParameterVectorElement
 from qiskit_aer import AerSimulator
 
@@ -369,11 +370,10 @@ def sample_circuit_random(
         for loc in range(qubits):
             if loc in used_qubits:
                 continue
-            gate_type = rng.choice(
-                gate_types
-                if loc + 1 < qubits
-                else [typ for typ in gate_types if single_typ(typ)]
-            )
+            if loc + 1 < qubits:
+                gate_type = rng.choice(gate_types)
+            else:
+                gate_type = rng.choice([typ for typ in gate_types if single_typ(typ)])
             match gate_type:
                 case GateType.H:
                     layer.append(Gate(gate_type, loc, params))

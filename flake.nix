@@ -43,6 +43,7 @@
                 ppkgs.tqdm
                 ppkgs.qiskit
                 ppkgs.qiskit-aer
+                ppkgs.matplotlib
               ]))
             ];
           };
