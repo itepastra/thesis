@@ -89,6 +89,16 @@ Making Baselines
 - Also contacted authors
   - While I think I did it correctly, I am not certain
 
+== What's next?
+
+- Finish up GA-QAS
+- Run it overnight with different hyperparameters to collect data
+- Use responses from authors to improve both
+- *Add entanglement proxy to GA-QAS*
+  - Also prepares for QD-QAS
+- Setup framework to make QD-QAS
+- Write down progress so far to pick up easier after surgery
+
 = Week 6
 The plan
 
