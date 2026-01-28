@@ -2,7 +2,7 @@ import math
 import random
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import override
+from typing import Self, override
 
 import numpy as np
 from qiskit import QuantumCircuit as QiskitCircuit
@@ -167,7 +167,7 @@ class QuantumCircuit:
 
     def expressibility_estimate(
         self, samples: int, seed: int, bins: int = 75, eps: float = 1e-12
-    ) -> "QuantumCircuit":
+    ) -> Self:
         qc, thetas = self.to_qiskit_for_expressibility()
 
         if self.params <= 0:

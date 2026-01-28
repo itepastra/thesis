@@ -3,6 +3,7 @@
 # "Genetic optimization of ansatz expressibility for enhanced variational quantum algorithm performance"
 
 import random
+import sys
 from typing import Generator, Never
 
 import matplotlib.pyplot as plt
@@ -10,14 +11,6 @@ import matplotlib.pyplot as plt
 from qas_flow import Stream
 from quantum_circuit import (Gate, GateType, QuantumCircuit, circ_from_layers,
                              sample_random_generator, single_typ)
-
-DEPTH: int = 6
-QUBITS: int = 6
-GENERATIONS: int = 40
-GENERATION_SIZE: int = 60
-PARENT_AMOUNT: int = 10
-MUTATION_RATE: float = 0.1
-
 
 gate_set: list[GateType] = [
     GateType.H,
@@ -77,47 +70,53 @@ def sample_hyperspace(
         yield point
 
 
-def plot_best_circuits(best_circuits: list[QuantumCircuit]) -> None:
-    fig, ax = plt.subplots()
-
-    ax.plot([-circ.expressibility for circ in best_circuits])
-    fig.savefig("best_circuits.png")
+EXPRESSIBILITY_SAMPLES: int = 2000
 
 
-def main() -> None:
-    seed_rng: random.Random = random.Random(1020381)
+def run_ga_qas(
+    depth: int,
+    qubits: int,
+    generations: int,
+    generation_size: int,
+    parent_amount: int,
+    mutation_rate: float,
+    seed: int,
+) -> list[tuple[int, int, int, int, int, float, float, float]]:
+    seed_rng = random.Random(seed)
     initial_population: list[QuantumCircuit] = (
-        Stream(sample_random_generator(random.Random(101020), QUBITS, DEPTH, gate_set))
-        .apply(lambda circ: print(circ))
-        .apply(
-            lambda circ: circ.expressibility_estimate(
-                2000, seed_rng.randint(1000, 1000000000)
+        Stream(
+            sample_random_generator(
+                random.Random(seed_rng.randint(1000, 1000000000)),
+                qubits,
+                depth,
+                gate_set,
             )
         )
-        .apply(lambda circ: print(circ))
-        .take(GENERATION_SIZE)
+        .apply(
+            lambda circ: circ.expressibility_estimate(
+                EXPRESSIBILITY_SAMPLES, seed_rng.randint(1000, 1000000000)
+            )
+        )
+        .take(generation_size)
         .collect()
     )
 
-    population = initial_population
-
-    main_rng = random.Random(2837175)
+    population: list[QuantumCircuit] = initial_population
+    main_rng = random.Random(seed_rng.randint(1000, 1000000000))
 
     best_circuits: list[QuantumCircuit] = []
-
-    for generation in range(GENERATIONS):
-        print(f"starting generation {generation}")
+    return_data: list[tuple[int, int, int, int, int, float, float, float]] = []
+    for generation in range(generations):
+        print(f"starting generation {generation} for seed {seed}", file=sys.stderr)
         population.sort(key=lambda qc: qc.expressibility, reverse=True)
-        parents = population[:PARENT_AMOUNT]
-        for parent in parents:
-            print(parent)
-        offspring = []
-        for _ in range(GENERATION_SIZE):
+        parents: list[QuantumCircuit] = population[:parent_amount]
+        offspring: list[QuantumCircuit] = []
+        for _ in range(generation_size):
             [p1, p2] = main_rng.sample(parents, 2)
-            crossover_layer = main_rng.randint(1, DEPTH)
+            crossover_layer = main_rng.randint(1, depth)
             child_layers = p1.gates[:crossover_layer] + p2.gates[crossover_layer:]
-            if main_rng.random() < MUTATION_RATE:
-                layer_idx = main_rng.randrange(DEPTH)
+            if main_rng.random() < mutation_rate:
+                layer_idx = main_rng.randrange(depth)
                 layer = child_layers[layer_idx]
                 gate_idx = main_rng.randrange(len(layer))
                 old_gate = child_layers[layer_idx][gate_idx]
@@ -137,21 +136,84 @@ def main() -> None:
                         old_gate.param_idx,
                     )
 
-            child = circ_from_layers(child_layers, QUBITS)
+            child = circ_from_layers(child_layers, qubits)
             child.expressibility_estimate(2000, seed_rng.randint(1000, 1000000000))
             offspring.append(child)
 
         offspring.sort(key=lambda qc: qc.expressibility, reverse=True)
+        return_data.append(
+            (
+                depth,
+                qubits,
+                generation,
+                generation_size,
+                parent_amount,
+                mutation_rate,
+                population[0].expressibility,
+                offspring[0].expressibility,
+            )
+        )
         if population[0].expressibility > offspring[0].expressibility:
-            print(f"best parent > best child")
             best_circuits.append(population[0])
         else:
-            print(f"best child > best parent")
             best_circuits.append(offspring[0])
         population = offspring
+    print(f"finished seed {seed}", file=sys.stderr)
+    print(f"finished seed {seed}", flush=True, file=sys.stdout)
+    return return_data
 
-    plot_best_circuits(best_circuits)
-    plt.show()
+
+def run_from_point(pnt: tuple[tuple[int, int, int, int, float], int]):
+    (point, seed) = pnt
+    return run_ga_qas(
+        point[0],
+        point[1],
+        2,
+        point[2],
+        point[3],
+        point[4],
+        seed,
+    )
+
+
+def print_ret(ret_data):
+    for dat in ret_data:
+        (
+            depth,
+            qubits,
+            generation,
+            generation_size,
+            parent_amount,
+            mutation_rate,
+            best_pop,
+            best_offspring,
+        ) = dat
+        print(
+            f"{depth},{qubits},{generation},{generation_size},{parent_amount},{mutation_rate},{best_pop},{best_offspring}",
+            flush=True,
+        )
+
+
+def main() -> None:
+
+    rng = random.Random(123456789)
+
+    results: list[QuantumCircuit] = (
+        Stream(
+            sample_hyperspace(
+                (1, 40),
+                (1, 10),
+                (1, 100),
+                (1, 20),
+                (0.0, 1.0),
+                seed=rng.randint(1000, 1000000000),
+            )
+        )
+        .map(lambda point: (point, rng.randint(1000, 1000000000)))
+        .par_map(run_from_point)
+        .apply(print_ret)
+        .collect()
+    )
 
 
 if __name__ == "__main__":
