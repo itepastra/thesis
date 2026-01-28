@@ -82,6 +82,12 @@ def run_ga_qas(
     mutation_rate: float,
     seed: int,
 ) -> list[tuple[int, int, int, int, int, float, float, float]]:
+
+    print(
+        f"running GA QAS {seed} with {qubits} qubits, {depth} depth, for {generations} generations of size {generation_size}, with {parent_amount} parents and {mutation_rate:.3f} mutation rate",
+        file=sys.stderr,
+    )
+
     seed_rng = random.Random(seed)
     initial_population: list[QuantumCircuit] = (
         Stream(
@@ -159,7 +165,6 @@ def run_ga_qas(
             best_circuits.append(offspring[0])
         population = offspring
     print(f"finished seed {seed}", file=sys.stderr)
-    print(f"finished seed {seed}", flush=True, file=sys.stdout)
     return return_data
 
 
@@ -168,7 +173,7 @@ def run_from_point(pnt: tuple[tuple[int, int, int, int, float], int]):
     return run_ga_qas(
         point[0],
         point[1],
-        2,
+        20,
         point[2],
         point[3],
         point[4],

@@ -34,20 +34,15 @@ def par_map(stream: Stream[T], fn: Callable[[T], U], cores: int = 0) -> Stream[U
 
             for _ in range(inflight):
                 x = next(it)
-                print(f"adding {x}")
                 pending.add(ex.submit(fn, x))
-            print(f"added stuff to pending {pending}")
 
             while True:
                 done, pending = wait(pending, return_when=FIRST_COMPLETED)
-                print(f"wait finished, {done}, {pending}")
 
                 for fut in done:
                     print(f"yielding: {fut}", file=sys.stderr)
-                    print(fut.result())
                     yield fut.result()
                     x = next(it)
-                    print(f"adding {x}")
                     pending.add(ex.submit(fn, x))
 
     return Stream(gen())
