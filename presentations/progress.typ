@@ -16,7 +16,7 @@
     title: "Implementation Specific QAS", // Required
     date: datetime.today().display(),
     authors: ("Noa Aarts"),
-  
+
     // Optional Styling (for more / explanation see in the typst universe)
     // ignore how bad the images look i'll adjust it until Monday
     title-color: blue.darken(10%),
@@ -55,6 +55,40 @@
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
+= Week 12
+Making Baselines
+
+== Holiday and personal life
+
+- Holiday was very relaxed, didn't do a lot
+- I have a boyfriend now
+- I have surgery on feb-18
+  - makes it hard to concentrate on university right now
+- finished up QCQP course
+- Starting grading of FQI exams, I might do it over the weekend
+
+== Training-Free QAS@training-free
+
+- Tried to reproduce, but circuits did not end up admissible.
+  - still didn't work with sampling change
+  - was not even close, at least a 10x worse performance of the outputs
+  - probably missed a step
+- Similar performance in time though
+- Sent a mail to the correspondent author
+
+== Genetic Algorithm QAS@genetic-expressibility
+
+- Tried to reproduce
+  - the circuits get mixed
+  - I can sort on the expressibilities
+  - They approximate the curve found in the paper
+  - I have done some hyperparameter exploration
+- Still to do
+  - make actual plots
+  - compare the output circuit performance
+- Also contacted authors
+  - While I think I did it correctly, I am not certain
+
 = Week 6
 The plan
 
@@ -91,8 +125,8 @@ $->$ Need to keep offspring within hardware constraints
 
 == Implemented Genetic Algorithms for QAS
 
-Applied in Arxiv submission "Genetic optimization of ansatz 
-expressibility for enhanced variational quantum algorithm 
+Applied in Arxiv submission "Genetic optimization of ansatz
+expressibility for enhanced variational quantum algorithm
 performance."@genetic-expressibility
 
 Does:
@@ -220,8 +254,8 @@ Two main groups:
 - "Sampling and filtering"
   Samples random circuits and uses proxies to filter
 
-None of the QAS listed find an admissible circuit "in one shot" from what I can tell, 
-they all either optimise parameters as part of the search protocol or need 
+None of the QAS listed find an admissible circuit "in one shot" from what I can tell,
+they all either optimise parameters as part of the search protocol or need
 multiple outputs to be optimised until a good enough one is found.
 
 
@@ -541,7 +575,7 @@ Parts to maybe re-use:
     //
     // chev((15.5 + 10.5, -2), 2, f: lg(purple, purple.darken(10%)))
     // content((25.5, -3.5), anchor: "north", "Writing")
-    
+
   })
   ]
 ]
