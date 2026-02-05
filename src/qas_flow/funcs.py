@@ -49,6 +49,22 @@ def par_map(stream: Stream[T], fn: Callable[[T], U], cores: int = 0) -> Stream[U
 
 
 @Stream.extension()
+def unique(stream: Stream[T]) -> Stream[T]:
+    """
+    Returns the stream with only the first instance of every element
+    """
+
+    def gen() -> Generator[T, Any, None]:
+        seen: set[T] = set()
+        for x in stream:
+            if x not in seen:
+                seen.add(x)
+                yield x
+
+    return Stream(gen())
+
+
+@Stream.extension()
 def filter(stream: Stream[T], pred: Callable[[T], bool]) -> Stream[T]:
     """
     Applies the predicate `pred` to every element and only returns elements where the predicate is true

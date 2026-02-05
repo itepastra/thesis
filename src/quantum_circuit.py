@@ -10,6 +10,8 @@ from qiskit import transpile
 from qiskit.circuit import ParameterVector, ParameterVectorElement
 from qiskit_aer import AerSimulator
 
+MAX_GATE_NUM: int = 36
+
 
 class GateType(IntEnum):
     """
@@ -33,15 +35,18 @@ def single_typ(typ: GateType) -> bool:
     match typ:
         case GateType.I | GateType.H | GateType.RX | GateType.RY | GateType.RZ:
             return True
-        case (
-            GateType.RXX
-            | GateType.RYY
-            | GateType.RZZ
-            | GateType.CX
-            | GateType.CZ
-            | GateType.CRX
-        ):
+        case GateType.RXX | GateType.RYY | GateType.RZZ | GateType.CX | GateType.CZ | GateType.CRX:
             return False
+
+
+def param_count(typ: GateType) -> int:
+    match typ:
+        case GateType.I | GateType.H:
+            return 0
+        case GateType.RX | GateType.RY | GateType.RZ | GateType.RXX | GateType.RYY | GateType.RZZ | GateType.CRX:
+            return 1
+        case _:
+            assert False, f"{typ} does not have a known param count"
 
 
 @dataclass(frozen=True)
@@ -51,11 +56,7 @@ class Gate:
     param_idx: int
 
     def to_json(self):
-        return {
-            "type": int(self.typ),
-            "qubits": self.qubits,
-            "param_idx": self.param_idx,
-        }
+        return {"type": int(self.typ), "qubits": self.qubits, "param_idx": self.param_idx}
 
     def single(self) -> bool:
         return single_typ(self.typ)
@@ -165,9 +166,7 @@ class QuantumCircuit:
         qc.save_statevector()
         return qc, thetas
 
-    def expressibility_estimate(
-        self, samples: int, seed: int, bins: int = 75, eps: float = 1e-12
-    ) -> Self:
+    def expressibility_estimate(self, samples: int, seed: int, bins: int = 75, eps: float = 1e-12) -> Self:
         qc, thetas = self.to_qiskit_for_expressibility()
 
         if self.params <= 0:
@@ -183,25 +182,17 @@ class QuantumCircuit:
         nexp = 2 * samples
         # vectorized binds: one circuit, many parameter values
         binds: list[dict[ParameterVectorElement, list[float]]] = [
-            {
-                param: [rng.random() * math.tau for _ in range(nexp)]
-                for param in thetas.params
-            }
+            {param: [rng.random() * math.tau for _ in range(nexp)] for param in thetas.params}
         ]
 
         job = backend.run([tqc], parameter_binds=binds)
         result = job.result()
 
-        sv = [
-            np.asarray(result.get_statevector(i), dtype=np.complex128)
-            for i in range(nexp)
-        ]
+        sv = [np.asarray(result.get_statevector(i), dtype=np.complex128) for i in range(nexp)]
         left = sv[:samples]
         right = sv[samples:]
 
-        inners = np.array(
-            [np.vdot(l, r) for l, r in zip(left, right)], dtype=np.complex128
-        )
+        inners = np.array([np.vdot(l, r) for l, r in zip(left, right)], dtype=np.complex128)
         F = (inners.conjugate() * inners).real
 
         hist, edges = np.histogram(F, bins=bins, range=(0.0, 1.0), density=False)
@@ -286,36 +277,43 @@ def odd_parity(qubits: int):
 
 
 def sample_circuit_layers(
-    rng: random.Random, qubits: int, depth: int
+    rng: random.Random, qubits: int, depth: int, gate_types: list[GateType] | None = None
 ) -> QuantumCircuit:
+
+    if gate_types is None:
+        gate_types = [GateType.H, GateType.RX, GateType.RY, GateType.RZ, GateType.RXX, GateType.RYY, GateType.RZZ]
+
     even = even_parity(qubits)
     odd = odd_parity(qubits)
+
+    logits_pre = np.array([rng.normalvariate(0, 1.35) for _ in gate_types])
+    logits: list[float] = list(np.exp(logits_pre) / sum(np.exp(logits_pre)))
 
     total_single = 0
     total_double = 0
     params = 0
 
     gates: list[list[Gate]] = []
-    for _ in range(depth):
-        if total_single + total_double >= 36:
-            break
 
+    i = 0
+    while total_single + total_double < MAX_GATE_NUM:
         gate_locations = even if rng.random() < 0.5 else odd
+        gate_type = rng.choices(gate_types, weights=list(logits), k=1)[0]
 
         layer = []
         for loc in gate_locations:
-            gate_type = rng.randint(1, 6)
-            if gate_type >= 4:
-                if loc[1] == qubits:
-                    continue
-                layer.append(Gate(GateType(gate_type), loc, params))
-                total_double += 1
-            else:
+            if single_typ(gate_type):
                 layer.append(Gate(GateType(gate_type), loc[0], params))
                 total_single += 1
-        gates.append(layer)
-        params += 1
+            else:
+                if loc[1] == qubits:
+                    loc[1] == 0
+                layer.append(Gate(GateType(gate_type), loc, params))
+                total_double += 1
+            params += param_count(gate_type)
 
+        gates.append(layer)
+        i += 1
     return QuantumCircuit(qubits, gates, total_single, total_double, params)
 
 
@@ -356,9 +354,7 @@ def circ_from_layers(layers: list[list[Gate]], qubits: int) -> QuantumCircuit:
     return QuantumCircuit(qubits, gates, total_single, total_double, params)
 
 
-def sample_circuit_random(
-    rng: random.Random, qubits: int, depth: int, gate_types: list[GateType]
-) -> QuantumCircuit:
+def sample_circuit_random(rng: random.Random, qubits: int, depth: int, gate_types: list[GateType]) -> QuantumCircuit:
     params = 0
     total_single = 0
     total_double = 0
@@ -391,24 +387,12 @@ def sample_circuit_random(
                     used_qubits.add(loc)
                     used_qubits.add(loc + 1)
                 case GateType.CX | GateType.CZ:
-                    layer.append(
-                        Gate(
-                            gate_type,
-                            (loc, loc + 1) if rng.random() < 0.5 else (loc + 1, loc),
-                            params,
-                        )
-                    )
+                    layer.append(Gate(gate_type, (loc, loc + 1) if rng.random() < 0.5 else (loc + 1, loc), params))
                     total_double += 1
                     used_qubits.add(loc)
                     used_qubits.add(loc + 1)
                 case GateType.CRX:
-                    layer.append(
-                        Gate(
-                            gate_type,
-                            (loc, loc + 1) if rng.random() < 0.5 else (loc + 1, loc),
-                            params,
-                        )
-                    )
+                    layer.append(Gate(gate_type, (loc, loc + 1) if rng.random() < 0.5 else (loc + 1, loc), params))
                     params += 1
                     total_double += 1
                     used_qubits.add(loc)
@@ -420,8 +404,6 @@ def sample_circuit_random(
     return QuantumCircuit(qubits, gates, total_single, total_double, params)
 
 
-def sample_random_generator(
-    rng: random.Random, qubits: int, depth: int, gates: list[GateType]
-):
+def sample_random_generator(rng: random.Random, qubits: int, depth: int, gates: list[GateType]):
     while True:
         yield sample_circuit_random(rng, qubits, depth, gates)
