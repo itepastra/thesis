@@ -55,6 +55,11 @@
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
+= Week 13
+Pre-OP wrapup
+
+==
+
 = Week 12
 Making Baselines
 

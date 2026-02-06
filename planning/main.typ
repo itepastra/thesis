@@ -56,7 +56,7 @@ or research usage, generally, one or a few topologies are used by the user in th
 The proposed method is to use user defined criteria, such as expressivity, entanglement (e.g., Schmidt
 strength@quantum-dynamics-physical-resource), and number of trainable parameters as a cost function, and generating an Ansatz to best fulfill
 the requirement given a topology. Methods of generating the Ansatz can be done either by procedural generation
-(algorithmic), using optimization methods such as genetic algorithms@architecture-search@evolutionary-architecture-search, or by using machine learning
+(algorithmic), using optimization methods such as genetic algorithms@genetic-expressibility@evolutionary-architecture-search, or by using machine learning
 methods such as generative AI@generative-quantum-eigensolver. The choice is to be determined by the MSc. student, based on a review of
 methods.
 Targets for the projects are comparisons on standard benchmarks of the QML Ansatz using hardware
@@ -94,6 +94,16 @@ I also have a lot of experience programming from my gap year where it was a big 
 This experience will be useful since my project will have a significant focus on programming.
 
 = Risk Management
+
+== Project related
+
+The planned search does not perform well at all, in this case I'll try to figure out why it isn't perfoming decently.
+If I find that it just won't work I'll write down the negative result so someone else doesn't get the same idea later.
+
+To mitigate the risk of losing progress I will be using Git all throughout my development cycle. This will give a
+history of edits made to the code and texts so I can easily go back to an earlier point if something didn't work out.
+
+== Personal
 
 Due to the nature of making something new, there are a couple of risks in the time management.
 If, after the literature research, I decide to use a certain strategy and figure out that it won't work
@@ -141,30 +151,37 @@ to join as well.
   week(9), [Work on Project],
   week(10), [Work on Project],
   week(11), [Work on Project],
-  week(12), [Work on Project],
-  week(13), [Work on Project],
-  week(14), [Create progress report],
-  week(15), [Midterm],
-  week(16), [Benchmarking],
-  week(17), [Implement Project Improvements],
-  week(18), [Implement Project Improvements],
-  week(19), [Benchmarking],
-  week(20), [Implement Project Improvements],
-  week(21), [Implement Project Improvements],
-  week(22), [Testing with hardware],
-  week(23), [Implement issue fixes],
-  week(24), [Testing on hardware],
-  week(25), [Write Report],
-  week(26), [Write Report],
-  week(27), [Draft 1],
-  week(28), [Green Light],
-  week(29), [Write Report],
-  week(30), [Draft 2],
-  week(31), [Write Report],
-  week(32), [Final version],
-  week(33), [],
+  week(12), [Prepare project for surgery],
+  week(13), [Prepare for surgery],
+  week(14), [Surgery],
+  week(15), [Recovery],
+  week(16), [Recovery],
+  week(17), [Recovery],
+  week(18), [Recovery (might take longer, if so the rest slides)],
+  week(19), [Work on Project],
+  week(20), [Work on Project],
+  week(21), [Work on Project],
+  week(22), [Create progress report],
+  week(23), [Midterm],
+  week(24), [Benchmarking],
+  week(25), [Implement Project Improvements],
+  week(26), [Implement Project Improvements],
+  week(27), [Benchmarking],
+  week(28), [Implement Project Improvements],
+  week(29), [Implement Project Improvements],
+  week(30), [Testing with hardware],
+  week(31), [Implement issue fixes],
+  week(32), [Testing on hardware],
+  week(33), [Write Report],
   week(34), [Help Organise Festival],
   week(35), [Help Organise Festival],
   week(36), [Help Organise Festival],
+  week(37), [Write Report],
+  week(38), [Draft 1],
+  week(39), [Green Light],
+  week(40), [Write Report],
+  week(41), [Draft 2],
+  week(42), [Write Report],
+  week(43), [Final version],
 )
 
