@@ -307,7 +307,7 @@ def sample_circuit_layers(
                 total_single += 1
             else:
                 if loc[1] == qubits:
-                    loc[1] == 0
+                    loc: tuple[int, int] = (loc[0], 0)
                 layer.append(Gate(GateType(gate_type), loc, params))
                 total_double += 1
             params += param_count(gate_type)

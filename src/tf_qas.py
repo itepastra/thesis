@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 from __future__ import annotations
+
 import argparse
-from itertools import repeat
 import json
 import math
 import random
 from dataclasses import dataclass
 from enum import IntEnum
+from itertools import repeat
 from multiprocessing import Pool
 from typing import override
+
 import numpy as np
-from qiskit import QuantumCircuit as QiskitCircuit, transpile
+from qiskit import QuantumCircuit as QiskitCircuit
+from qiskit import transpile
 from qiskit.circuit import ParameterVector, ParameterVectorElement
 from qiskit_aer import AerSimulator
 from tqdm import tqdm
 
-from .qas_flow import Stream
-from .quantum_circuit import QuantumCircuit, GateType, sample_layers_generator
+from qas_flow import Stream
+from quantum_circuit import GateType, QuantumCircuit, sample_layers_generator
 
 # ----------------------------
 # Paper hyperparameters/defaults
@@ -95,9 +98,7 @@ def exact_ground_energy(H: np.ndarray) -> float:
     return float(w[0])
 
 
-def statevector_from_bound_circuit(
-    backend: AerSimulator, tqc: QiskitCircuit, bind: dict
-) -> np.ndarray:
+def statevector_from_bound_circuit(backend: AerSimulator, tqc: QiskitCircuit, bind: dict) -> np.ndarray:
     res = backend.run([tqc], parameter_binds=[bind]).result()
     sv = np.asarray(res.get_statevector(0), dtype=np.complex128)
     return sv
@@ -129,9 +130,7 @@ def adam_optimize_tfim_energy(
 
     p = circuit.params
     rng = np.random.default_rng(seed)
-    theta = rng.uniform(
-        -2 * math.pi, 2 * math.pi, size=p
-    )  # paper init range :contentReference[oaicite:7]{index=7}
+    theta = rng.uniform(-2 * math.pi, 2 * math.pi, size=p)  # paper init range :contentReference[oaicite:7]{index=7}
 
     backend = AerSimulator(method="statevector", seed_simulator=seed)
     tqc = transpile(qc, backend, optimization_level=0)
@@ -160,10 +159,7 @@ def adam_optimize_tfim_energy(
         energies = np.array(
             [
                 energy_expectation_from_sv(H, sv)
-                for sv in [
-                    np.asarray(res.get_statevector(k), dtype=np.complex128)
-                    for k in range(2 * p)
-                ]
+                for sv in [np.asarray(res.get_statevector(k), dtype=np.complex128) for k in range(2 * p)]
             ]
         )
 
@@ -199,17 +195,9 @@ def adam_optimize_tfim_energy(
 
 
 def ground_truth_tfim(
-    circ: QuantumCircuit,
-    H: np.ndarray,
-    E0: float,
-    seed: int,
-    lr: float,
-    max_steps: int,
-    tol: float,
+    circ: QuantumCircuit, H: np.ndarray, E0: float, seed: int, lr: float, max_steps: int, tol: float
 ) -> QuantumCircuit:
-    best_E, steps = adam_optimize_tfim_energy(
-        circ, H, seed=seed, lr=lr, max_steps=max_steps, tol=tol
-    )
+    best_E, steps = adam_optimize_tfim_energy(circ, H, seed=seed, lr=lr, max_steps=max_steps, tol=tol)
     err = best_E - E0
     circ.gt_energy = best_E
     circ.gt_error = err
@@ -226,10 +214,7 @@ def ground_truth_tfim(
 def parse_args():
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "--qubits",
-        type=int,
-        default=6,
-        help="TFIM qubit count (paper uses 6). :contentReference[oaicite:8]{index=8}",
+        "--qubits", type=int, default=6, help="TFIM qubit count (paper uses 6). :contentReference[oaicite:8]{index=8}"
     )
     ap.add_argument(
         "--depth",
@@ -255,34 +240,14 @@ def parse_args():
         default=5000,
         help="R: top circuits kept by paths (paper uses 5000). :contentReference[oaicite:12]{index=12}",
     )
-    ap.add_argument(
-        "--topk",
-        type=int,
-        default=100,
-        help="K: how many top circuits to output/store.",
-    )
-    ap.add_argument(
-        "--seed", type=int, default=0, help="RNG seed for sampling/reproducibility."
-    )
-    ap.add_argument(
-        "--periodic",
-        action="store_true",
-        help="Use periodic TFIM boundary (default true if set).",
-    )
-    ap.add_argument(
-        "--no-periodic",
-        dest="periodic",
-        action="store_false",
-        help="Use open boundary TFIM.",
-    )
+    ap.add_argument("--topk", type=int, default=100, help="K: how many top circuits to output/store.")
+    ap.add_argument("--seed", type=int, default=0, help="RNG seed for sampling/reproducibility.")
+    ap.add_argument("--periodic", action="store_true", help="Use periodic TFIM boundary (default true if set).")
+    ap.add_argument("--no-periodic", dest="periodic", action="store_false", help="Use open boundary TFIM.")
     ap.set_defaults(periodic=True)
 
     # ground-truth options
-    ap.add_argument(
-        "--do_ground_truth",
-        action="store_true",
-        help="Also evaluate ground-truth TFIM VQE performance.",
-    )
+    ap.add_argument("--do_ground_truth", action="store_true", help="Also evaluate ground-truth TFIM VQE performance.")
     ap.add_argument(
         "--gt_budget",
         type=int,
@@ -295,18 +260,8 @@ def parse_args():
         default=0.01,
         help="Adam learning rate (paper uses 0.01). :contentReference[oaicite:14]{index=14}",
     )
-    ap.add_argument(
-        "--gt_max_steps",
-        type=int,
-        default=2000,
-        help="Max Adam steps per circuit (practical cap).",
-    )
-    ap.add_argument(
-        "--gt_tol",
-        type=float,
-        default=1e-7,
-        help="Convergence tolerance for |E_t - E_{t-1}|.",
-    )
+    ap.add_argument("--gt_max_steps", type=int, default=2000, help="Max Adam steps per circuit (practical cap).")
+    ap.add_argument("--gt_tol", type=float, default=1e-7, help="Convergence tolerance for |E_t - E_{t-1}|.")
     ap.add_argument("--dump", type=str, default="dump.json", help="Output JSON file.")
 
     return ap.parse_args()
@@ -341,9 +296,7 @@ def main():
     final_circuits: list[QuantumCircuit] = []
     with Pool() as p:
         for circ in tqdm(
-            p.imap_unordered(
-                expr_worker, zip(candidates, seeds, repeat(args.expressibility_samples))
-            ),
+            p.imap_unordered(expr_worker, zip(candidates, seeds, repeat(args.expressibility_samples))),
             total=len(candidates),
             desc="expressibility",
         ):
@@ -366,15 +319,7 @@ def main():
             if queried >= args.gt_budget:
                 break
             seed = gt_seed_stream.randint(0, 1_000_000_000)
-            ground_truth_tfim(
-                circ,
-                H,
-                E0,
-                seed=seed,
-                lr=args.gt_lr,
-                max_steps=args.gt_max_steps,
-                tol=args.gt_tol,
-            )
+            ground_truth_tfim(circ, H, E0, seed=seed, lr=args.gt_lr, max_steps=args.gt_max_steps, tol=args.gt_tol)
             if circ.gt_error is not None and circ.gt_error < min_error:
                 print(f"new best error for {queried}: {circ.gt_error}")
                 min_error = circ.gt_error
