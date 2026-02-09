@@ -39,7 +39,7 @@
 
 #makecoverpage(
   // supply path to cover image
-  img: image("img/cover-image.jpg"),
+  img: image("img/cover-image.png"),
   // These arguments speak for themselves
   title: tit,
   subtitle: subtit,
@@ -69,8 +69,7 @@
     [Committee member 3],
     [TU Delft.],
   ),
-  cover-description: [Photo by #link("https://unsplash.com/@thejoltjoker?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash", "Johannes Andersson") on #link("https://unsplash.com/photos/two-brown-deer-beside-trees-and-mountain-UCd78vfC8vU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash", "Unsplash").
-  ],
+  cover-description: [Photo of train station in the morning sun by Noa Aarts],
   // Some more options of a publicity statement:
   // publicity-statement: [An electronic version of thesis is available at #link("https://repository.tudelft.nl", [`https://repository.tudelft.nl`]).],
   // publicity-statement: smallcaps[This thesis is confidential and cannot be made public.],
