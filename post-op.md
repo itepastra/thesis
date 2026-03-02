@@ -2,6 +2,8 @@
 
 Hello me, this is a list for you to get back on track with the QD-QAS you were working on...
 
+Tell Sebastian and Koen "I'm back"
+
 ## Things I've done
 
 I have made baselines for two types of optimization free QAS, namely TF-QAS and GA-QAS.
