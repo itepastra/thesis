@@ -3,6 +3,7 @@
 #import "@preview/cetz:0.3.4"
 #import "@preview/typsium:0.2.0": ce
 #import "@preview/numbly:0.1.0": numbly
+#import "@preview/fletcher:0.5.8": *
 #import "./theme.typ": *
 
 #set heading(numbering: numbly("{1}.", default: "1.1"))
@@ -55,10 +56,81 @@
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
-= Week 13
-Pre-OP wrapup
+= Week ??
 
-==
+Post Surgery
+
+== Content
+
+- Research question
+- Solution Architecture
+- Comparing with other methods
+
+== Research Question
+
+- Uncertain about the wording
+#pause
+How does Quality-Diversity based Quantum Architecture Search compare to the state-of-the-art in QAS
+in speed, noise performance and transferability between problems?
+
+== Hypothesis
+
+I think the speed of the search itself will be comparable to the GA-QAS, which is slower than
+TF-QAS but likely faster then problem specific searches.
+
+In noise performance I think it would be possible to improve upon both GA-QAS and TF-QAS as neither
+attempts to optimize for it.
+
+I think the transferability of the output will be a significant improvement over TF-QAS,
+especially when counting the whole set of PQCs.
+
+== QD-QAS architecture
+
+#let nodes = ("Make Initial Population", "Create Offspring", "Calculate Cost Function", "Take Best Offspring", "Offspring Becomes Parents")
+#let edges = (
+  (0, 1),
+  (1, 2),
+  (2, 3),
+  (3, 4),
+  (4, 1),
+)
+#align(center + horizon)[
+#diagram({
+	for (i, n) in nodes.enumerate() {
+		let θ = -90deg + i*360deg/nodes.len()
+		node((θ, 0.8), n, stroke: 0.5pt, name: str(i))
+	}
+	for (from, to) in edges {
+		let bend = if (to, from) in edges { 10deg } else { 5deg }
+		// refer to nodes by label, e.g., <1>
+		edge(label(str(from)), label(str(to)), "-|>", bend: bend)
+	}
+})
+]
+
+== Comparing
+
+- Preferences
+  - Same benchmarks for all QAS types
+  - Not implementing tests multiple times
+  - Consistent program outputs
+
+
+== Comparing
+
+- Options I see
+  - Replicate other papers to have consistent outputs \
+    \- need to get it all working as expected \
+    \+ will have identical tests and outputs
+  - Create an interface and adapt the other papers to it \
+    \- limited by the lowest common denominator \
+    \+ don't need to fully replicate papers
+  - Use the tests of the other papers \
+    \- Likely can't compare all together \
+    \- Can't choose tests freely \
+    \+ Not necessary to rerun tests of the other papers \
+    \+ Don't have to implement tests for the other papers
+
 
 = Week 12
 Making Baselines
