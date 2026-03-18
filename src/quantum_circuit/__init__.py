@@ -39,6 +39,17 @@ class QuantumType(enum.Enum):
             QuantumType.RZ,
         }
 
+    def is_parameterized(self):
+        return self in {
+            QuantumType.RX,
+            QuantumType.RXX,
+            QuantumType.RY,
+            QuantumType.RYY,
+            QuantumType.RZ,
+            QuantumType.RZZ,
+            QuantumType.CRX,
+        }
+
 
 @dataclass(frozen=True)
 class QuantumGate:
@@ -58,6 +69,9 @@ class ParametrizedQuantumCircuit:
 
     gates: list[list[QuantumGate]]
     """Gates in the quantum circuit, organised as a list of layers of gates."""
+
+    parameters: int
+    """How many parameters are used the circuit"""
 
     _expressivity: float | None = None
     """
@@ -90,6 +104,9 @@ class ParametrizedQuantumCircuit:
         """
         Add a layer to the end of the existing circuit in-place
         """
+        for gate in layer:
+            if gate.type.is_parameterized():
+                self.parameters += 1
         self.gates.append(layer)
 
     @property
