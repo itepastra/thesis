@@ -1,14 +1,27 @@
 from dataclasses import dataclass
+from random import Random
 from typing import Callable
 
-from settings import QuantumArchitectureSearchSettings
+from tqdm import tqdm
+
+from quantum_circuit import ParametrizedQuantumCircuit
 
 
 @dataclass
-class QualityDiversitySettings(QuantumArchitectureSearchSettings):
+class QualityDiversitySettings:
     """
     Hyperparameters for Quality Diversity based Quantum Architecture Search
     """
+
+    qubits: int
+
+    depth: int
+
+    cost_function: Callable[[list[ParametrizedQuantumCircuit]], list[float]]
+    """A function that takes a list of PQC's and returnes the cost of each"""
+
+    sample_function: Callable[[Random], ParametrizedQuantumCircuit]
+    """A function that returns a random PQC"""
 
     initial_population_size: int
     """How many (random) circuits should be generated at the beginning"""
@@ -25,4 +38,13 @@ class QualityDiversitySettings(QuantumArchitectureSearchSettings):
     mutation_rate: float
     """for each gate in a circuit from the offspring perform a mutation if random [0, 1) < mutation_rate"""
 
-    cost_function: Callable[[ParametrizedQuantumCircuit], float]
+
+def qd_qas(settings: QualityDiversitySettings, random: Random) -> list[ParametrizedQuantumCircuit]:
+    initial_population = [
+        settings.sample_function(random) for _ in range(settings.initial_population_size)
+    ]
+
+    for generation in tqdm(range(settings.generation_count)):
+        offspring = ...
+
+    raise NotImplementedError

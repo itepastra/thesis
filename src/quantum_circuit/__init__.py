@@ -93,21 +93,77 @@ class ParametrizedQuantumCircuit:
 
     _qiskit_circ: tuple[QuantumCircuit, ParameterVector] | None = None
 
+    def __str__(self):
+        return str(self.circ[0])
+
     def __init__(self, qubits: int):
         """
         Initialise an empty circuit for the passed amount of qubits
         """
         self.qubits = qubits
-        self.gates = []
+        self.gates: list[list[QuantumGate]] = []
+        self.parameters = 0
 
-    def append_layer(self, layer: list[QuantumGate]):
+    def append_layer(self, layer: list[QuantumGate], collapse: bool):
         """
         Add a layer to the end of the existing circuit in-place
         """
-        for gate in layer:
-            if gate.type.is_parameterized():
-                self.parameters += 1
-        self.gates.append(layer)
+        if collapse and self.gates:
+            add_to_prev = True
+            prev_positions = {qb for qg in self.gates[-1] for qb in qg.qubits}
+            for gate in layer:
+                if gate in prev_positions:
+                    add_to_prev = False
+                    break
+        else:
+            add_to_prev = False
+
+        if add_to_prev:
+            self.gates[-1].extend(layer)
+        else:
+            self.gates.append(layer)
+
+    def extend_layers(self, layers: list[list[QuantumGate]]):
+        """
+        Add multiple layers to the existing circuit in-place
+        """
+        for layer in layers:
+            self.append_layer(layer, False)
+
+    def append_gate(self, gate: QuantumGate):
+        """
+        Add a gate in the first spot that is valid
+        """
+
+        gate_qubits = gate.qubits
+        earliest_empty = None
+
+        for idx, layer in enumerate(self.gates):
+            existing = {qb for qg in layer for qb in qg.qubits}
+            for qb in gate_qubits:
+                if qb in existing:
+                    earliest_empty = None
+                    break
+                elif earliest_empty is None:
+                    earliest_empty = idx
+
+        if earliest_empty is None:
+            self.gates.append([gate])
+        else:
+            self.gates[earliest_empty].append(gate)
+
+    def check_parameters(self, notify=True):
+        parameters_found = 0
+
+        for layer in self.gates:
+            for gate in layer:
+                if gate.type.is_parameterized():
+                    parameters_found += 1
+
+        if parameters_found != self.parameters:
+            if notify:
+                print(f"wrong amount of parameters found, was {self.parameters}, now {parameters_found}")
+            self.parameters = parameters_found
 
     @property
     def circ(self) -> tuple[QuantumCircuit, ParameterVector]:
