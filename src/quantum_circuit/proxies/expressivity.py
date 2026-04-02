@@ -18,7 +18,11 @@ if TYPE_CHECKING:
 
 def single_circuit_param_fidelity(
     circ: ParametrizedQuantumCircuit, samples: int, backend: AerBackend
-) -> float:
+) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    """
+    Calculates the result of <qc_params1|qc_params2> `samples` times.
+    then returns the absolute squared value |<qc_params1|qc_params2>|^2
+    """
     qc, thetas = circ.circ
     qc.save_statevector()
 
@@ -35,14 +39,14 @@ def single_circuit_param_fidelity(
     job = backend.run([tqc], parameter_binds=binds)
     result = job.result()
 
-    sv = np.array(
+    sv: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = np.array(
         [
             np.asarray(result.get_statevector(i), dtype=np.complex128)
             for i in range(number_of_initial_circuits)
         ]
     )
-    left = sv[:samples]
-    right = sv[samples:]
+    left: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = sv[:samples]
+    right: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = sv[samples:]
 
     ret = np.power(np.absolute((left * right.conjugate()).sum(-1)), 2)
 
@@ -61,7 +65,7 @@ def calculate_fidelity(
 
 def calculate_expressivity(
     circs: list[ParametrizedQuantumCircuit] | ParametrizedQuantumCircuit, config: ProxyConfig
-) -> NDArray[np.float64]:
+) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
     tqdm_depth = 1
     from quantum_circuit import ParametrizedQuantumCircuit
 
@@ -115,11 +119,3 @@ def calculate_expressivity(
         circs[idx]._expressivity = float(expressivity[idx])
 
     return expressivity
-
-
-def calculate_entanglement(
-    circs: list[ParametrizedQuantumCircuit] | ParametrizedQuantumCircuit, config: ProxyConfig
-) -> NDArray[np.float64]:
-    if isinstance(circs, ParametrizedQuantumCircuit):
-        circs = [circs]
-    raise NotImplementedError

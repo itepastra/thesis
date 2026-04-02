@@ -51,6 +51,8 @@ def add_qubit_gate(
             )  # ty:ignore[index-out-of-bounds]
         case QuantumType.CX:
             circ.cx(gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
+        case QuantumType.CZ:
+            circ.cz(gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
         case _:
             raise NotImplementedError(f"Gate type {gate.type} not implemented")
     return gate.type.is_parameterized()

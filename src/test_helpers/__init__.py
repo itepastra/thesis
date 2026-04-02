@@ -1,0 +1,1 @@
+SAMPLES_COUNT: int = 1000

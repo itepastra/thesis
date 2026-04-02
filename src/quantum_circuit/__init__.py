@@ -1,14 +1,14 @@
 import enum
+import re
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 from qiskit.circuit.parametervector import ParameterVector
 
+from quantum_circuit.proxies.entanglement import calculate_entanglement
+from quantum_circuit.proxies.expressivity import calculate_expressivity, calculate_fidelity
 from quantum_circuit.proxy_config import ProxyConfig
 from quantum_circuit.qiskit_helpers import build_qiskit_circ
-
-from .proxies import (calculate_entanglement, calculate_expressivity,
-                      calculate_fidelity)
 
 
 class QuantumType(enum.Enum):
@@ -51,10 +51,31 @@ class QuantumType(enum.Enum):
         }
 
 
+ALL_GATE_TYPES = [
+    QuantumType.Identity,
+    QuantumType.Hadamard,
+    QuantumType.X,
+    QuantumType.RX,
+    QuantumType.RXX,
+    QuantumType.Y,
+    QuantumType.RY,
+    QuantumType.RYY,
+    QuantumType.Z,
+    QuantumType.RZ,
+    QuantumType.RZZ,
+    QuantumType.CX,
+    QuantumType.CRX,
+    QuantumType.CZ,
+]
+
+
 @dataclass(frozen=True)
 class QuantumGate:
     type: QuantumType
     qubits: tuple[int] | tuple[int, int]
+
+    def bitset(self) -> int:
+        return sum(1 << pos for pos in self.qubits)
 
 
 class ParametrizedQuantumCircuit:
@@ -69,6 +90,9 @@ class ParametrizedQuantumCircuit:
 
     gates: list[list[QuantumGate]]
     """Gates in the quantum circuit, organised as a list of layers of gates."""
+
+    layer_bitsets: list[int]
+    """Bitset of used qubits for each layer"""
 
     parameters: int
     """How many parameters are used the circuit"""
@@ -102,6 +126,7 @@ class ParametrizedQuantumCircuit:
         """
         self.qubits = qubits
         self.gates: list[list[QuantumGate]] = []
+        self.layer_bitsets: list[int] = []
         self.parameters = 0
 
     def append_layer(self, layer: list[QuantumGate], collapse: bool):
@@ -110,18 +135,27 @@ class ParametrizedQuantumCircuit:
         """
         if collapse and self.gates:
             add_to_prev = True
-            prev_positions = {qb for qg in self.gates[-1] for qb in qg.qubits}
+            prev_positions = self.layer_bitsets[-1]
             for gate in layer:
-                if gate in prev_positions:
+                gate_bitset = gate.bitset()
+                if gate_bitset & prev_positions:
                     add_to_prev = False
+                    self.layer_bitsets.append(0)
                     break
         else:
             add_to_prev = False
+            self.layer_bitsets.append(0)
+
+        for gate in layer:
+            self.layer_bitsets[-1] |= gate.bitset()
 
         if add_to_prev:
             self.gates[-1].extend(layer)
         else:
             self.gates.append(layer)
+        assert len(self.gates) == len(
+            self.layer_bitsets
+        ), f"Desync between {self.gates} and {self.layer_bitsets}"
 
     def extend_layers(self, layers: list[list[QuantumGate]]):
         """
@@ -135,22 +169,28 @@ class ParametrizedQuantumCircuit:
         Add a gate in the first spot that is valid
         """
 
-        gate_qubits = gate.qubits
-        earliest_empty = None
+        gate_qubits = gate.bitset()
+        earliest_empty: int | None = None
 
-        for idx, layer in enumerate(self.gates):
-            existing = {qb for qg in layer for qb in qg.qubits}
-            for qb in gate_qubits:
-                if qb in existing:
-                    earliest_empty = None
-                    break
-                elif earliest_empty is None:
-                    earliest_empty = idx
+        depth = len(self.gates)
+        for rev_idx, (layer, bits) in enumerate(
+            zip(reversed(self.gates), reversed(self.layer_bitsets)), 1
+        ):
+            idx = depth - rev_idx
+            if gate_qubits & bits:
+                break
+            else:
+                earliest_empty = idx
 
         if earliest_empty is None:
             self.gates.append([gate])
+            self.layer_bitsets.append(gate.bitset())
         else:
             self.gates[earliest_empty].append(gate)
+            self.layer_bitsets[earliest_empty] |= gate.bitset()
+        assert len(self.gates) == len(
+            self.layer_bitsets
+        ), f"Desync between {self.gates} and {self.layer_bitsets}"
 
     def check_parameters(self, notify=True):
         parameters_found = 0
@@ -162,7 +202,9 @@ class ParametrizedQuantumCircuit:
 
         if parameters_found != self.parameters:
             if notify:
-                print(f"wrong amount of parameters found, was {self.parameters}, now {parameters_found}")
+                print(
+                    f"wrong amount of parameters found, was {self.parameters}, now {parameters_found}"
+                )
             self.parameters = parameters_found
 
     @property

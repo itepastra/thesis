@@ -20,6 +20,8 @@ def sample_by_layers(
 
     pqc = ParametrizedQuantumCircuit(qubits)
 
+    even_qubits = qubits % 2 == 0
+
     while len(pqc.gates) < circuit_depth:
         even_parity = random.random() < 0.5
         gate_type: QuantumType = random.choice(gate_types)
@@ -29,7 +31,7 @@ def sample_by_layers(
             direction = random.random() < 0.5
             positions = [
                 (i, (i + 1) % qubits) if direction else ((i + 1) % qubits, i)
-                for i in range(0 if even_parity else 1, qubits, 2)
+                for i in range(0 if even_parity else 1, (qubits if even_qubits else qubits - 1), 2)
             ]
 
         pqc.append_layer(

@@ -1,7 +1,6 @@
 from collections.abc import Iterator
 from typing import Any, Callable, Generic, TypeVar, final
 
-
 T = TypeVar("T")
 U = TypeVar("U")
 

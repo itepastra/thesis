@@ -44,6 +44,8 @@
                 ppkgs.qiskit
                 ppkgs.qiskit-aer
                 ppkgs.matplotlib
+                ppkgs.pytest
+                ppkgs.pytest-xdist
               ]))
             ];
           };
