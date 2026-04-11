@@ -1,6 +1,13 @@
 import numpy as np
+import scipy
+from numpy.random import Generator
+from qiskit import transpile
+from qiskit_aer.backends.aer_simulator import AerSimulator
+
+from quantum_circuit import ParametrizedQuantumCircuit
 
 dt = np.dtype(np.float64)
+tau = np.pi * 2
 
 
 def _pauli_x() -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
@@ -24,7 +31,6 @@ def kronecker_product(
     return out
 
 
-# TODO: make a test to ensure this is correct
 def tfim_hamiltonian(
     n: int, periodic: bool = True
 ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
@@ -49,7 +55,38 @@ def tfim_hamiltonian(
     return H
 
 
-# TODO: make a test to ensure this is correct
 def exact_ground_energy(H: np.ndarray[tuple[int, int], np.dtype[np.float64]]) -> float:
     w = np.linalg.eigvalsh(H)
     return float(w[0])
+
+
+SHIFT = np.pi / 2.0
+
+
+def pshift(val, idx):
+    vp = val.copy()
+    vm = val.copy()
+
+    vp[idx] += SHIFT
+    vm[idx] -= SHIFT
+
+    return vp, vm
+
+
+def optimize_circuit(circ: ParametrizedQuantumCircuit, rng: Generator, backend: AerSimulator):
+    params = np.random.uniform(-np.pi, np.pi, (circ.parameters))
+
+    qc, thetas = circ.circ
+    tqc = transpile(qc, backend, optimization_level=2)
+    p = circ.parameters
+
+    theta = rng.uniform(-np.pi, np.pi, p)
+
+    def energy_and_grad_fn(param_values: np.ndarray):
+        bound = tqc.assign_parameters(
+            {
+                param: [val] + [a for k in range(p) for a in pshift(val, k)]
+                for param, val in zip(thetas.params, param_values)
+            }
+        )
+        result = backend.run(bound).result()

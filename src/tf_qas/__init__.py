@@ -4,6 +4,8 @@ from itertools import repeat
 from operator import itemgetter
 from random import Random
 
+from tqdm import tqdm
+
 import qas_flow
 from qas_flow import Stream
 from quantum_circuit import ParametrizedQuantumCircuit
@@ -33,8 +35,10 @@ class TrainingFreeSettings:
     """How many circuits should be allowed past the `cheap_cost_function` filter"""
 
 
-def tf_qas(settings: TrainingFreeSettings, random: Random) -> list[ParametrizedQuantumCircuit]:
-    samples = [settings.sample_function(random) for _ in range(settings.sample_size)]
+def tf_qas(settings: TrainingFreeSettings, random: Random) -> list[tuple[ParametrizedQuantumCircuit, float]]:
+    samples = []
+    for _ in tqdm(range(settings.sample_size), desc="Sampling Random", leave=False, position=1):
+        samples.append(settings.sample_function(random))
 
     fast_cost_estimate = settings.cheap_cost_function(samples)
 
@@ -42,9 +46,7 @@ def tf_qas(settings: TrainingFreeSettings, random: Random) -> list[ParametrizedQ
         zip(samples, fast_cost_estimate), key=itemgetter(1)
     )
 
-    post_fast_cost_circuits = [
-        x for x, _ in sorted_fast_cost[: settings.post_fast_cost_function_size]
-    ]
+    post_fast_cost_circuits = [x for x, _ in sorted_fast_cost[: settings.post_fast_cost_function_size]]
 
     slow_cost_estimate = settings.expensive_cost_function(post_fast_cost_circuits)
 
@@ -52,4 +54,4 @@ def tf_qas(settings: TrainingFreeSettings, random: Random) -> list[ParametrizedQ
         zip(post_fast_cost_circuits, slow_cost_estimate), key=itemgetter(1)
     )
 
-    return [x for x, _ in sorted_slow_cost]
+    return sorted_slow_cost

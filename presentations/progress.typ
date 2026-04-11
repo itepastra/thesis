@@ -108,6 +108,25 @@ especially when counting the whole set of PQCs.
 })
 ]
 
+== Similarities/Differences with GA-QAS
+
+- Same global structure
+- Cost function for QD-QAS includes "distance"
+
+== Calculating Distance
+
+I have some ideas, but need to decide on which are most promising
+
+structural:
+- differences in gates
+- differences in connection graph
+#pause
+behavioural:
+- explored "area" of Hilbert space overlap
+- shape of histogram compared with HAAR
+- difference between 'average' vectors from sampling
+
+
 == Comparing
 
 - Preferences
@@ -130,6 +149,21 @@ especially when counting the whole set of PQCs.
     \- Can't choose tests freely \
     \+ Not necessary to rerun tests of the other papers \
     \+ Don't have to implement tests for the other papers
+
+== Comparing
+
+Prefer Replicating:
+- As far as I know the searches themselves are already replicated
+- Makes consistent testing possible
+
+== Testing
+
+- What are good comparisons?
+  - TFIM
+  - BeH
+  - random unitaries
+- compare transferability
+  - run search once, then all tests on the same test
 
 
 = Week 12

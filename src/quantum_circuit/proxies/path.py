@@ -88,7 +88,9 @@ def paths_proxy(
         (len(circs)), dtype=np.dtype("uint32")
     )
 
-    for i, circ in enumerate(circs):
+    for i, circ in tqdm(
+        enumerate(circs), total=len(circs), desc="Computing Paths", position=1, leave=False
+    ):
         dag = make_dag(circ)
         node_count = len(dag)
         out[i] = count_paths(dag, 0, node_count - 1, [None for _ in range(node_count)])

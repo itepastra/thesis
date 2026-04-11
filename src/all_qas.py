@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import logging
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from enum import Enum
@@ -8,10 +9,12 @@ from tqdm import tqdm
 
 import ga_qas
 import sampling
+import tf_qas
 from ga_qas import GeneticAlgorithmSettings
-from qd_qas import QualityDiversitySettings
+from problems import benchmark_qas
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumType
 from quantum_circuit.proxies.expressivity import calculate_expressivity
+from quantum_circuit.proxies.path import paths_proxy
 from quantum_circuit.proxy_config import ProxyConfig
 from tf_qas import TrainingFreeSettings
 
@@ -22,88 +25,83 @@ class SearchStrategy(Enum):
     QDQAS = 3
 
 
-def main(
-    search_settings: QualityDiversitySettings | TrainingFreeSettings | GeneticAlgorithmSettings,
-):
+def main(search_settings: TrainingFreeSettings | GeneticAlgorithmSettings):
 
-    found_circuits: list[ParametrizedQuantumCircuit] = []
+    random = Random()
 
-    if isinstance(search_settings, QualityDiversitySettings):
-        pass
-    elif isinstance(search_settings, TrainingFreeSettings):
-        pass
+    result = []
+    if isinstance(search_settings, TrainingFreeSettings):
+        result = tf_qas.tf_qas(search_settings, random)
     elif isinstance(search_settings, GeneticAlgorithmSettings):
 
-        history, result = ga_qas.ga_qas(search_settings, Random())
+        history, result = ga_qas.ga_qas(search_settings, random)
 
-        for circ, cost in result:
-            print(f"{circ}\ncost: {cost}")
-            found_circuits.append(circ)
+    found_circuits: list[ParametrizedQuantumCircuit] = []
+    for circ, cost in result:
+        logging.debug(f"{circ}\ncost: {cost}")
+        found_circuits.append(circ)
 
     # for each problem type, try the circuits, and then when they succeed the problem log it and continue to the next
+
+    benchmark_qas(found_circuits, lambda _: True, True)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument(
-        "--strategy", type=str, default="qd", help="Search strategy", choices=["ga", "qd", "tf"]
-    )
+    parser.add_argument("--strategy", type=str, default="qd", help="Search strategy", choices=["ga", "qd", "tf"])
     parser.add_argument("--qubits", type=int, default=4, help="How many qubits to search a PQC for")
     parser.add_argument("--depth", type=int, default=12, help="How many qubits to search a PQC for")
     args = parser.parse_args()
 
-    strat = {"ga": SearchStrategy.GAQAS, "qd": SearchStrategy.QDQAS, "tf": SearchStrategy.TFQAS}[
-        args.strategy
-    ]
+    strat = {"ga": SearchStrategy.GAQAS, "qd": SearchStrategy.QDQAS, "tf": SearchStrategy.TFQAS}[args.strategy]
     proxy_config = ProxyConfig(args.qubits)
 
-    gate_set = [
-        QuantumType.Hadamard,
-        QuantumType.RX,
-        QuantumType.RY,
-        QuantumType.RZ,
-        QuantumType.CX,
-    ]
+    gate_set = [QuantumType.Hadamard, QuantumType.RX, QuantumType.RY, QuantumType.RZ, QuantumType.CX]
 
-    def sampling_func(random: Random):
+    def gate_sampling(random: Random):
         return sampling.sample_by_gates(args.qubits, args.depth, gate_set, random)
+
+    def layer_sampling(random: Random):
+        return sampling.sample_by_layers(args.qubits, args.depth, gate_set, random, True)
 
     match strat:
         case SearchStrategy.TFQAS:
-            pass
+
+            def cheap_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
+                return [float(x) for x in paths_proxy(circs)]
+
+            def expensive_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
+                return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
+
+            search_settings = TrainingFreeSettings(
+                args.qubits, args.depth, cheap_proxy, expensive_proxy, layer_sampling, 50000, 5000
+            )
+
         case SearchStrategy.GAQAS:
 
             def expressibility_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
                 return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
 
             search_settings = GeneticAlgorithmSettings(
+                args.qubits, args.depth, expressibility_proxy_value, gate_sampling, 20, 20, 15, 0.3, 20, gate_set
+            )
+        case SearchStrategy.QDQAS:
+
+            def expressibility_distance_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
+                return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
+
+            search_settings = GeneticAlgorithmSettings(
                 args.qubits,
                 args.depth,
-                expressibility_proxy_value,
-                sampling_func,
+                expressibility_distance_proxy_value,
+                gate_sampling,
                 20,
                 20,
                 15,
                 0.3,
                 20,
                 gate_set,
-            )
-        case SearchStrategy.QDQAS:
-
-            def expressibility_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                return list(calculate_expressivity(circs, proxy_config))
-
-            search_settings = QualityDiversitySettings(
-                args.qubits,
-                args.depth,
-                expressibility_proxy_value,
-                sampling_func,
-                20,
-                20,
-                20,
-                20,
-                0.01,
             )
 
     main(search_settings)

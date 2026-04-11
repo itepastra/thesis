@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from operator import itemgetter
 from random import Random
 
 from tqdm import tqdm
@@ -20,7 +21,7 @@ class GeneticAlgorithmSettings:
     """A function that returns a random PQC"""
     initial_population_size: int
 
-    offsprint_size: int
+    offspring_size: int
 
     survival_size: int
 
@@ -69,7 +70,7 @@ def ga_qas(
     for generation in tqdm(range(settings.generations), desc="Generations", position=0):
         pop_cost = settings.cost_function(population)
         parents: list[ParametrizedQuantumCircuit] = [
-            x for x, _ in sorted(zip(population, pop_cost), key=lambda xy: xy[1])
+            x for x, _ in sorted(zip(population, pop_cost), key=itemgetter(1))
         ][: settings.survival_size]
         offspring: list[ParametrizedQuantumCircuit] = []
         best_circuits.append(parents[0])
@@ -111,4 +112,4 @@ def ga_qas(
         pop_cost = settings.cost_function(population)
 
         return_data.append((min(old_pop_cost), min(pop_cost)))
-    return (return_data, sorted(zip(population, pop_cost), key=lambda xy: xy[1]))
+    return (return_data, sorted(zip(population, pop_cost), key=itemgetter(1)))

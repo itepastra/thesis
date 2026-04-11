@@ -153,9 +153,6 @@ class ParametrizedQuantumCircuit:
             self.gates[-1].extend(layer)
         else:
             self.gates.append(layer)
-        assert len(self.gates) == len(
-            self.layer_bitsets
-        ), f"Desync between {self.gates} and {self.layer_bitsets}"
 
     def extend_layers(self, layers: list[list[QuantumGate]]):
         """
@@ -173,9 +170,7 @@ class ParametrizedQuantumCircuit:
         earliest_empty: int | None = None
 
         depth = len(self.gates)
-        for rev_idx, (layer, bits) in enumerate(
-            zip(reversed(self.gates), reversed(self.layer_bitsets)), 1
-        ):
+        for rev_idx, (layer, bits) in enumerate(zip(reversed(self.gates), reversed(self.layer_bitsets)), 1):
             idx = depth - rev_idx
             if gate_qubits & bits:
                 break
@@ -188,9 +183,7 @@ class ParametrizedQuantumCircuit:
         else:
             self.gates[earliest_empty].append(gate)
             self.layer_bitsets[earliest_empty] |= gate.bitset()
-        assert len(self.gates) == len(
-            self.layer_bitsets
-        ), f"Desync between {self.gates} and {self.layer_bitsets}"
+        assert len(self.gates) == len(self.layer_bitsets), f"Desync between {self.gates} and {self.layer_bitsets}"
 
     def check_parameters(self, notify=True):
         parameters_found = 0
@@ -202,9 +195,7 @@ class ParametrizedQuantumCircuit:
 
         if parameters_found != self.parameters:
             if notify:
-                print(
-                    f"wrong amount of parameters found, was {self.parameters}, now {parameters_found}"
-                )
+                print(f"wrong amount of parameters found, was {self.parameters}, now {parameters_found}")
             self.parameters = parameters_found
 
     @property
