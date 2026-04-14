@@ -1,3 +1,4 @@
+import enum
 import logging
 import random
 from collections.abc import Callable
@@ -53,6 +54,9 @@ def optimize_circuit_adam(
     alpha: float = 0.001,
     epsilon: float = 1e-8,
     tpos: int = 1,
+    grad_tol=1e-5,
+    energy_tol=1e-6,
+    patience=20,
 ):
 
     qc, thetas = circ.circ
@@ -62,49 +66,75 @@ def optimize_circuit_adam(
     theta: np.ndarray[tuple[int], np.dtype[np.float64]] = rng.uniform(-np.pi, np.pi, p)
 
     def energy_and_grad_fn(
-        param_values: np.ndarray[tuple[int], np.dtype[np.float64]],
-    ) -> tuple[float, np.ndarray[tuple[int], np.dtype[np.float64]]]:
-        result = backend.run(
-            tqc,
-            [
-                {
-                    param: [float(param_values[i])] + [a for k in range(p) for a in parameter_shift(param_values, k, i)]
-                    for i, param in enumerate(thetas.params)
-                }
-            ],
-        ).result()
-        statevectors = np.asarray([result.get_statevector(i) for i in range(1 + 2 * p)], dtype=np.complex128)
+        param_values: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+    ) -> tuple[np.ndarray[tuple[int], np.dtype[np.float64]], np.ndarray[tuple[int, int], np.dtype[np.float64]]]:
 
-        energies = [float(np.real(np.vdot(sv, hamiltonian @ sv))) for sv in statevectors]
+        n_heads, p_local = param_values.shape
+        assert p_local == p
 
-        grad = np.zeros(p, dtype=np.float64)
+        batch = np.repeat(param_values[:, None, :], 1 + 2 * p, axis=1)
+
         for i in range(p):
-            grad[i] = 0.5 * (energies[2 * i + 1] - energies[2 * i + 2])
+            batch[:, 2 * i + 1, i] += SHIFT
+            batch[:, 2 * i + 2, i] -= SHIFT
 
-        return energies[0], grad
+        flat_batch = batch.reshape(-1, p)
+        parameter_binds = {param: list(flat_batch[:, i]) for i, param in enumerate(thetas)}
+
+        result = backend.run(tqc, [parameter_binds]).result()
+        statevectors = np.asarray([result.get_statevector(i) for i in range(flat_batch.shape[0])], dtype=np.complex128)
+
+        flat_energies = np.asarray([np.real(np.vdot(sv, hamiltonian @ sv)) for sv in statevectors], dtype=np.float64)
+        energies_all = flat_energies.reshape(n_heads, 1 + 2 * p)
+        energies = energies_all[:, 0]  # get the energies at all the parameter values
+
+        grads = 0.5 * (energies_all[:, 1::2] - energies_all[:, 2::2])
+        return energies, grads
 
     best_theta = None
     best_energy = np.inf
     history: list[list[float]] = []
 
-    for head in tqdm(range(n_heads), desc="Optimizing head", leave=False, position=tpos):
-        params = rng.uniform(-np.pi, np.pi, p)
-        m = np.zeros_like(params)
-        v = np.zeros_like(params)
-        head_history: list[float] = []
+    active = np.ones(n_heads, dtype=bool)
+    best_seen = np.full(n_heads, np.inf)
+    stall_count = np.zeros(n_heads, dtype=np.int32)
 
-        for t in tqdm(range(1, steps + 1), desc="Optimisation step", leave=False, position=tpos + 1):
-            energy, grad = energy_and_grad_fn(params)
-            head_history.append(energy)
+    params = rng.uniform(-np.pi, np.pi, (n_heads, p))
+    m = np.zeros_like(params)
+    v = np.zeros_like(params)
 
-            m = beta_1 * m + (1 - beta_1) * grad
-            v = beta_2 * v + (1 - beta_2) * grad * grad
+    bar = tqdm(
+        range(1, steps + 1), desc=f"Optimization step (active: {np.count_nonzero(active)})", leave=False, position=tpos
+    )
+    for t in bar:
+        bar.desc = f"Optimization step (active: {np.count_nonzero(active)})"
+        if not np.any(active):
+            break
+        active_idx = np.where(active)[0]
+        energies, grads = energy_and_grad_fn(params[active_idx])
+        history.append(list(energies))
 
-            m_corr = m / (1 - beta_1**t)
-            v_corr = v / (1 - beta_2**t)
+        improved = energies < (best_seen[active_idx] - energy_tol)
+        best_seen[active_idx[improved]] = energies[improved]
 
-            params -= alpha * m_corr / (np.sqrt(v_corr) + epsilon)
+        stall_count[active_idx[improved]] = 0
+        stall_count[active_idx[~improved]] += 1
 
-        history.append(head_history)
+        grad_norm = np.linalg.norm(grads, axis=1)
+        done = (grad_norm < grad_tol) | (stall_count[active_idx] >= patience)
+        m_sub = m[active_idx]
+        v_sub = v[active_idx]
+
+        m_sub = beta_1 * m_sub + (1 - beta_1) * grads
+        v_sub = beta_2 * v_sub + (1 - beta_2) * grads * grads
+
+        m_corr = m_sub / (1 - beta_1**t)
+        v_corr = v_sub / (1 - beta_2**t)
+
+        params[active_idx[~done]] -= alpha * m_corr[~done] / (np.sqrt(v_corr[~done]) + epsilon)
+
+        m[active_idx] = m_sub
+        v[active_idx] = v_sub
+        active[active_idx[done]] = False
 
     return best_theta, best_energy, history

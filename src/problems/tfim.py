@@ -69,7 +69,7 @@ def make_problem_function(
 ) -> Callable[[ParametrizedQuantumCircuit], tuple[bool, ...]]:
 
     rng = np.random.default_rng(seed)
-    backend = AerSimulator(method="statevector")
+    backend = AerSimulator(method="statevector", max_parallel_threads=0, max_parallel_experiments=0)
 
     hamiltonian = tfim_hamiltonian(qubits, periodic)
     true_energy = exact_ground_energy(hamiltonian)
