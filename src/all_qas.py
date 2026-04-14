@@ -12,6 +12,7 @@ import sampling
 import tf_qas
 from ga_qas import GeneticAlgorithmSettings
 from problems import benchmark_qas
+from problems.tfim import make_problem_function
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumType
 from quantum_circuit.proxies.expressivity import calculate_expressivity
 from quantum_circuit.proxies.path import paths_proxy
@@ -28,11 +29,14 @@ class SearchStrategy(Enum):
 def main(search_settings: TrainingFreeSettings | GeneticAlgorithmSettings):
 
     random = Random()
+    qubits = 0
 
     result = []
     if isinstance(search_settings, TrainingFreeSettings):
+        qubits = search_settings.qubits
         result = tf_qas.tf_qas(search_settings, random)
     elif isinstance(search_settings, GeneticAlgorithmSettings):
+        qubits = search_settings.qubits
 
         history, result = ga_qas.ga_qas(search_settings, random)
 
@@ -43,7 +47,7 @@ def main(search_settings: TrainingFreeSettings | GeneticAlgorithmSettings):
 
     # for each problem type, try the circuits, and then when they succeed the problem log it and continue to the next
 
-    benchmark_qas(found_circuits, lambda _: True, True)
+    benchmark_qas(found_circuits, make_problem_function(qubits, True, 0.01, random.randrange(10000, 1000000)), True)
 
 
 if __name__ == "__main__":
@@ -84,12 +88,13 @@ if __name__ == "__main__":
                 return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
 
             search_settings = GeneticAlgorithmSettings(
-                args.qubits, args.depth, expressibility_proxy_value, gate_sampling, 20, 20, 15, 0.3, 20, gate_set
+                args.qubits, args.depth, expressibility_proxy_value, gate_sampling, 20, 20, 15, 0.3, 4, gate_set
             )
         case SearchStrategy.QDQAS:
 
             def expressibility_distance_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
+                target_expressibility = -0.05
+                return [abs(-float(x) - target_expressibility) for x in calculate_expressivity(circs, proxy_config)]
 
             search_settings = GeneticAlgorithmSettings(
                 args.qubits,

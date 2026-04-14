@@ -40,10 +40,7 @@ def crossover_once(
 
 
 def crossover_many(
-    p1: ParametrizedQuantumCircuit,
-    p2: ParametrizedQuantumCircuit,
-    random: Random,
-    crossover_odds: float,
+    p1: ParametrizedQuantumCircuit, p2: ParametrizedQuantumCircuit, random: Random, crossover_odds: float
 ) -> list[list[QuantumGate]]:
     crossover_map = [random.random() < crossover_odds for layer in p1.gates]
     final = []
@@ -75,9 +72,7 @@ def ga_qas(
         offspring: list[ParametrizedQuantumCircuit] = []
         best_circuits.append(parents[0])
 
-        for _ in tqdm(
-            range(settings.offsprint_size), desc="Generating offspring", position=1, leave=False
-        ):
+        for _ in tqdm(range(settings.offspring_size), desc="Generating offspring", position=1, leave=False):
             [p1, p2] = random.sample(parents, 2)
             assert isinstance(p1, ParametrizedQuantumCircuit), f"expected PQC, but found {p1}"
             assert isinstance(p2, ParametrizedQuantumCircuit), f"expected PQC, but found {p2}"
@@ -90,18 +85,13 @@ def ga_qas(
 
                 if old_gate.type.is_single_qubit():
                     child_layers[layer_idx][gate_idx] = QuantumGate(
-                        random.choice(
-                            [gate for gate in settings.gate_set if gate.is_single_qubit()]
-                        ),
-                        old_gate.qubits,
+                        random.choice([gate for gate in settings.gate_set if gate.is_single_qubit()]), old_gate.qubits
                     )
                 else:
                     child_layers[layer_idx][gate_idx] = QuantumGate(
                         old_gate.type, (old_gate.qubits[1], old_gate.qubits[0])
                     )
-            assert (
-                len(child_layers) == settings.depth
-            ), f"{child_layers} does not have depth {settings.depth}"
+            assert len(child_layers) == settings.depth, f"{child_layers} does not have depth {settings.depth}"
             for i, layer in enumerate(child_layers):
                 assert layer, f"layer {i} is empty"
             child = ParametrizedQuantumCircuit(settings.qubits)

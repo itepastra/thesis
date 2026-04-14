@@ -1,9 +1,12 @@
+from collections.abc import Callable
+
 import numpy as np
 import scipy
 from numpy.random import Generator
 from qiskit import transpile
 from qiskit_aer.backends.aer_simulator import AerSimulator
 
+from problems import optimize_circuit_adam
 from quantum_circuit import ParametrizedQuantumCircuit
 
 dt = np.dtype(np.float64)
@@ -31,9 +34,7 @@ def kronecker_product(
     return out
 
 
-def tfim_hamiltonian(
-    n: int, periodic: bool = True
-) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+def tfim_hamiltonian(n: int, periodic: bool = True) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
     X = _pauli_x()
     Z = _pauli_z()
     I = _ident()
@@ -60,33 +61,26 @@ def exact_ground_energy(H: np.ndarray[tuple[int, int], np.dtype[np.float64]]) ->
     return float(w[0])
 
 
-SHIFT = np.pi / 2.0
+def make_problem_function(
+    qubits: int,
+    periodic: bool = True,  # make the first and last node connect or not
+    success_accuracy: float = 0.01,  # within 1%
+    seed: int | None = None,
+) -> Callable[[ParametrizedQuantumCircuit], tuple[bool, ...]]:
 
+    rng = np.random.default_rng(seed)
+    backend = AerSimulator(method="statevector")
 
-def pshift(val, idx):
-    vp = val.copy()
-    vm = val.copy()
+    hamiltonian = tfim_hamiltonian(qubits, periodic)
+    true_energy = exact_ground_energy(hamiltonian)
 
-    vp[idx] += SHIFT
-    vm[idx] -= SHIFT
+    def tfim_problem(pqc: ParametrizedQuantumCircuit) -> tuple[bool, ...]:
+        best_params, best_energy, history = optimize_circuit_adam(pqc, rng, backend, hamiltonian)
 
-    return vp, vm
-
-
-def optimize_circuit(circ: ParametrizedQuantumCircuit, rng: Generator, backend: AerSimulator):
-    params = np.random.uniform(-np.pi, np.pi, (circ.parameters))
-
-    qc, thetas = circ.circ
-    tqc = transpile(qc, backend, optimization_level=2)
-    p = circ.parameters
-
-    theta = rng.uniform(-np.pi, np.pi, p)
-
-    def energy_and_grad_fn(param_values: np.ndarray):
-        bound = tqc.assign_parameters(
-            {
-                param: [val] + [a for k in range(p) for a in pshift(val, k)]
-                for param, val in zip(thetas.params, param_values)
-            }
+        return (
+            true_energy * (1 - success_accuracy) < best_energy < true_energy * (1 + success_accuracy),
+            best_params,
+            history,
         )
-        result = backend.run(bound).result()
+
+    return tfim_problem
