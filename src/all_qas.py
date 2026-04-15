@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from random import Random
 
+import tensorcircuit as tc
 from tqdm import tqdm
 
 import ga_qas
@@ -18,6 +19,9 @@ from quantum_circuit.proxies.expressivity import calculate_expressivity
 from quantum_circuit.proxies.path import paths_proxy
 from quantum_circuit.proxy_config import ProxyConfig
 from tf_qas import TrainingFreeSettings
+
+tc.set_backend("tensorflow")
+tc.set_dtype("complex128")
 
 
 class SearchStrategy(Enum):

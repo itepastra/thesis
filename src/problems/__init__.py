@@ -5,6 +5,7 @@ from collections.abc import Callable
 
 import numpy as np
 import scipy
+import tensorcircuit as tc
 from numpy.random import Generator
 from qiskit import transpile
 from qiskit_aer.backends.aer_simulator import AerSimulator

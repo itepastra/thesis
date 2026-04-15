@@ -1,7 +1,9 @@
 import enum
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 
+import tensorcircuit as tc
 from qiskit import QuantumCircuit
 from qiskit.circuit.parametervector import ParameterVector
 
@@ -9,6 +11,7 @@ from quantum_circuit.proxies.entanglement import calculate_entanglement
 from quantum_circuit.proxies.expressivity import calculate_expressivity, calculate_fidelity
 from quantum_circuit.proxy_config import ProxyConfig
 from quantum_circuit.qiskit_helpers import build_qiskit_circ
+from quantum_circuit.tensorcircuit_helpers import build_tensor_circuit
 
 
 class QuantumType(enum.Enum):
@@ -117,6 +120,8 @@ class ParametrizedQuantumCircuit:
 
     _qiskit_circ: tuple[QuantumCircuit, ParameterVector] | None = None
 
+    _tensor_circ: Callable[..., tc.Circuit] | None = None
+
     def __str__(self):
         return str(self.circ[0])
 
@@ -207,6 +212,13 @@ class ParametrizedQuantumCircuit:
             self._qiskit_circ = build_qiskit_circ(self)
 
         return self._qiskit_circ
+
+    @property
+    def tcirc(self) -> Callable[..., tc.Circuit]:
+        if self._tensor_circ is None:
+            self._tensor_circ = build_tensor_circuit(self)
+
+        return self._tensor_circ
 
     def expressivity(self, config: ProxyConfig) -> float:
         """
