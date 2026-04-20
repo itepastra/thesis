@@ -90,7 +90,7 @@ def main(file: Path, seed: int | None, savepath: Path, skip_existing: bool, part
     }
 
     for part in parts_to_do:
-        f = savepath.joinpath(part)
+        f = savepath.joinpath(f"{part}.csv")
         if skip_existing and f.exists():
             continue
         eval_functions[part](f)
