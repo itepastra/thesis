@@ -19,6 +19,7 @@ class GeneticAlgorithmSettings:
 
     sample_function: Callable[[Random], ParametrizedQuantumCircuit]
     """A function that returns a random PQC"""
+
     initial_population_size: int
 
     offspring_size: int
@@ -30,6 +31,9 @@ class GeneticAlgorithmSettings:
     generations: int
 
     gate_set: list[QuantumType]
+
+    additional: str
+    """Additional string to add to filename for differentiation"""
 
 
 def crossover_once(

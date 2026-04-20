@@ -34,6 +34,9 @@ class TrainingFreeSettings:
     post_fast_cost_function_size: int
     """How many circuits should be allowed past the `cheap_cost_function` filter"""
 
+    additional: str
+    """Additional string to add to filename for differentiation"""
+
 
 def tf_qas(settings: TrainingFreeSettings, random: Random) -> list[tuple[ParametrizedQuantumCircuit, float]]:
     samples = []

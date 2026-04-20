@@ -1,17 +1,16 @@
 import enum
+import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import tensorcircuit as tc
 from qiskit import QuantumCircuit
 from qiskit.circuit.parametervector import ParameterVector
 
-from quantum_circuit.proxies.entanglement import calculate_entanglement
-from quantum_circuit.proxies.expressivity import calculate_expressivity, calculate_fidelity
-from quantum_circuit.proxy_config import ProxyConfig
-from quantum_circuit.qiskit_helpers import build_qiskit_circ
-from quantum_circuit.tensorcircuit_helpers import build_tensor_circuit
+from .proxies.entanglement import calculate_entanglement
+from .proxies.expressivity import calculate_expressivity, calculate_fidelity
+from .proxy_config import ProxyConfig
+from .qiskit_helpers import build_qiskit_circ
 
 
 class QuantumType(enum.Enum):
@@ -120,8 +119,6 @@ class ParametrizedQuantumCircuit:
 
     _qiskit_circ: tuple[QuantumCircuit, ParameterVector] | None = None
 
-    _tensor_circ: Callable[..., tc.Circuit] | None = None
-
     def __str__(self):
         return str(self.circ[0])
 
@@ -134,7 +131,7 @@ class ParametrizedQuantumCircuit:
         self.layer_bitsets: list[int] = []
         self.parameters = 0
 
-    def append_layer(self, layer: list[QuantumGate], collapse: bool):
+    def append_layer(self, layer: list[QuantumGate], collapse: bool) -> None:
         """
         Add a layer to the end of the existing circuit in-place
         """
@@ -159,14 +156,14 @@ class ParametrizedQuantumCircuit:
         else:
             self.gates.append(layer)
 
-    def extend_layers(self, layers: list[list[QuantumGate]]):
+    def extend_layers(self, layers: list[list[QuantumGate]]) -> None:
         """
         Add multiple layers to the existing circuit in-place
         """
         for layer in layers:
             self.append_layer(layer, False)
 
-    def append_gate(self, gate: QuantumGate):
+    def append_gate(self, gate: QuantumGate) -> None:
         """
         Add a gate in the first spot that is valid
         """
@@ -190,7 +187,7 @@ class ParametrizedQuantumCircuit:
             self.layer_bitsets[earliest_empty] |= gate.bitset()
         assert len(self.gates) == len(self.layer_bitsets), f"Desync between {self.gates} and {self.layer_bitsets}"
 
-    def check_parameters(self, notify=True):
+    def check_parameters(self, notify=True) -> None:
         parameters_found = 0
 
         for layer in self.gates:
@@ -212,13 +209,6 @@ class ParametrizedQuantumCircuit:
             self._qiskit_circ = build_qiskit_circ(self)
 
         return self._qiskit_circ
-
-    @property
-    def tcirc(self) -> Callable[..., tc.Circuit]:
-        if self._tensor_circ is None:
-            self._tensor_circ = build_tensor_circuit(self)
-
-        return self._tensor_circ
 
     def expressivity(self, config: ProxyConfig) -> float:
         """

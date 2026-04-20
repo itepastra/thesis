@@ -1,0 +1,78 @@
+import enum
+import logging
+import math
+import random
+from collections.abc import Callable
+from io import TextIOWrapper
+
+import numpy as np
+import scipy
+import tensorcircuit as tc
+import tensorflow as tf
+from numpy.random import Generator
+from qiskit import transpile
+from qiskit_aer.backends.aer_simulator import AerSimulator
+from tqdm import tqdm
+
+from quantum_circuit import ParametrizedQuantumCircuit
+
+
+def log_circ_stats(
+    file_handle: TextIOWrapper,
+    i: int,
+    circ: ParametrizedQuantumCircuit,
+    result: tuple[bool, float],
+    true_energy: float | None = None,
+):
+    file_handle.write(
+        f"{i},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters},{result[1]},{result[0]}{f",{(true_energy - result[1])/true_energy},{result[1] - true_energy}" if true_energy is not None else ""}\n"
+    )
+
+
+def benchmark_qas(
+    qas_results: list[ParametrizedQuantumCircuit],
+    problem_function: Callable[[ParametrizedQuantumCircuit], tuple[bool, float]],
+    file_handle: TextIOWrapper,
+    true_energy: float | None = None,
+    continue_after_found: bool = False,
+):
+    succes_data: list[tuple[ParametrizedQuantumCircuit, int, tuple[bool, float]]] = []
+    file_handle.write(
+        f"# benchmaking {len(qas_results)} circuits{f", theoretical energy is {true_energy}" if true_energy is not None else ""}\n"
+    )
+    file_handle.write(
+        f"index,depth,gates,parameters,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n"
+    )
+
+    for i, circ in tqdm(enumerate(qas_results), total=len(qas_results), desc="Circuit", leave=False):
+        result = problem_function(circ)
+        log_circ_stats(file_handle, i, circ, result, true_energy)
+        if result[0]:
+            succes_data.append((circ, i, result))
+            if not continue_after_found:
+                break
+
+    return succes_data
+
+
+def optimize_circuit_adam(
+    circ: ParametrizedQuantumCircuit, vec_value_and_grad, batch_size: int = 1000, max_iter: int = 10000, tpos: int = 1
+):
+    param = tf.Variable(initial_value=tf.random.uniform(shape=[batch_size, circ.parameters]) * math.tau - math.pi)
+    opt = tf.keras.optimizers.Adam(1e-2)
+    bar = tqdm(range(max_iter), desc=f"Step (compiling)", leave=False, position=tpos)
+    e_last = np.full((batch_size,), np.inf)
+    for i in bar:
+        e, grad = vec_value_and_grad(param)
+        opt.apply_gradients([(grad, param)])
+        bar.desc = f"Step (current energy {np.min(e):.4f})"
+        if i % 100 == 0:  # check if converged
+            distance = np.abs(e_last - e.numpy())
+            if distance.max() < 0.0001:
+                break
+            else:
+                e_last = e.numpy()
+
+    e_n = e.numpy()
+    best = np.argmin(e_n)
+    return param.numpy()[best], e_n[best]

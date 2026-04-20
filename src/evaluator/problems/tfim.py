@@ -1,13 +1,19 @@
 from collections.abc import Callable
 
+import jax
 import numpy as np
 import scipy
+import tensorcircuit as tc
 from numpy.random import Generator
 from qiskit import transpile
 from qiskit_aer.backends.aer_simulator import AerSimulator
 
-from problems import optimize_circuit_adam
-from quantum_circuit import ParametrizedQuantumCircuit
+from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit.tensorcircuit_helpers import build_tensor_circuit_factory
+
+from . import optimize_circuit_adam
+
+tc.set_backend("tensorflow")
 
 dt = np.dtype(np.float64)
 tau = np.pi * 2
@@ -34,26 +40,26 @@ def kronecker_product(
     return out
 
 
-def tfim_hamiltonian(n: int, periodic: bool = True) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+def tfim_hamiltonian(n: int, periodic: bool = True):
     X = _pauli_x()
     Z = _pauli_z()
     I = _ident()
     dimension = 1 << n
-    H = np.zeros((dimension, dimension), dtype=dt)
+    hamiltonian = np.zeros((dimension, dimension), dtype=dt)
 
     for i in range(n):
         operations = [I] * n
         operations[i] = X
-        H += kronecker_product(operations)
+        hamiltonian += kronecker_product(operations)
 
         j = (i + 1) % n
         if (not periodic) and (j == 0):
             continue
         operations[i] = Z
         operations[j] = Z
-        H += kronecker_product(operations)
+        hamiltonian += kronecker_product(operations)
 
-    return H
+    return hamiltonian
 
 
 def exact_ground_energy(H: np.ndarray[tuple[int, int], np.dtype[np.float64]]) -> float:
@@ -66,21 +72,25 @@ def make_problem_function(
     periodic: bool = True,  # make the first and last node connect or not
     success_accuracy: float = 0.01,  # within 1%
     seed: int | None = None,
-) -> Callable[[ParametrizedQuantumCircuit], tuple[bool, ...]]:
+) -> tuple[Callable[[ParametrizedQuantumCircuit], tuple[bool, float]], float]:
 
     rng = np.random.default_rng(seed)
-    backend = AerSimulator(method="statevector", max_parallel_threads=0, max_parallel_experiments=0)
 
     hamiltonian = tfim_hamiltonian(qubits, periodic)
     true_energy = exact_ground_energy(hamiltonian)
 
-    def tfim_problem(pqc: ParametrizedQuantumCircuit) -> tuple[bool, ...]:
-        best_params, best_energy, history = optimize_circuit_adam(pqc, rng, backend, hamiltonian)
+    def tfim_problem(circ: ParametrizedQuantumCircuit) -> tuple[bool, float]:
 
-        return (
-            true_energy * (1 - success_accuracy) < best_energy < true_energy * (1 + success_accuracy),
-            best_params,
-            history,
+        tcirc_function = build_tensor_circuit_factory(
+            circ, [QuantumGate(QuantumType.Hadamard, (i,)) for i in range(circ.qubits)], hamiltonian
         )
 
-    return tfim_problem
+        vec_value_and_grad = tc.backend.jit(tc.backend.vectorized_value_and_grad(tcirc_function))
+        best_params, best_energy = optimize_circuit_adam(circ, vec_value_and_grad)
+
+        return (
+            bool(np.any(true_energy * (1 - success_accuracy) < best_energy < true_energy * (1 + success_accuracy))),
+            best_energy,
+        )
+
+    return tfim_problem, true_energy

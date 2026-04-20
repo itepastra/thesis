@@ -142,6 +142,7 @@
                 ppkgs.pytest-xdist
                 ppkgs.jax
                 ppkgs.tensorflow
+                ppkgs.keras
                 tensorcircuit
               ]))
             ];
