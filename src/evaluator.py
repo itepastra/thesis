@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 import json
 import os
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-import evaluator.problems.tfim as tfim
+from py import path
+from tqdm import tqdm
+
 from evaluator.problems import benchmark_qas
+from evaluator.problems.tfim import make_problem_function as make_tfim_problem
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit.proxy_config import ProxyConfig
+
+EXPRESSIVITY = "expressivity"
+PATHS = "paths"
+TFIM = "tfim"
+TFIM_NON_PERIOD = "tfim_non_period"
 
 
 def parse_circuit(circuit) -> ParametrizedQuantumCircuit:
@@ -21,22 +30,60 @@ def parse_circuit(circuit) -> ParametrizedQuantumCircuit:
     return c
 
 
-def main(file: Path, seed: int | None, savepath: Path, skip_existing: bool):
+def expressivity(file: Path, circuits: list[ParametrizedQuantumCircuit]):
+    print(f"calculating expressivities")
+    with open(file, "w+") as f:
+        f.write("index,expressivity\n")
+        for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
+            f.write(f"{i},{circ.expressivity(ProxyConfig(circ.qubits))}\n")
+
+
+def paths(file: Path, circuits: list[ParametrizedQuantumCircuit]):
+    from quantum_circuit.proxies.path import count_paths, make_dag
+
+    print(f"calculating paths")
+
+    def calc_paths(circ: ParametrizedQuantumCircuit) -> int:
+        dag = make_dag(circ)
+        node_count = len(dag)
+        return count_paths(dag, 0, node_count - 1, [None for _ in range(node_count)])
+
+    with open(file, "w+") as f:
+        f.write("index,paths\n")
+        for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
+            f.write(f"{i},{calc_paths(circ)}\n")
+
+
+def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool):
+    print(f"calculating {"periodic" if periodic else "non-periodic"} tfim energies")
+    with open(file, "w+") as f:
+        pfunc, true_energy = make_tfim_problem(circuits[0].qubits, periodic)
+        benchmark_qas(circuits, pfunc, f, true_energy, True)
+
+
+def main(file: Path, seed: int | None, savepath: Path, skip_existing: bool, parts_to_do: set[str]):
     print("loading file")
-    with open(file) as f:
+    with open(file, "r") as f:
         circuits = json.load(f)
 
     print("parsing circuits")
-    parsed_circuits = [parse_circuit(circuit) for circuit in circuits]
+    parsed_circuits: list[ParametrizedQuantumCircuit] = [parse_circuit(circuit) for circuit in circuits]
 
     print(f"setting up save folder at {savepath}")
     os.makedirs(savepath, exist_ok=True)
 
-    tfim_file = savepath.joinpath("tfim_periodic_log")
-    if not (skip_existing and tfim_file.exists()):
-        with open(tfim_file, "w+") as f:
-            pfunc, true_energy = tfim.make_problem_function(parsed_circuits[0].qubits, True)
-            benchmark_qas(parsed_circuits, pfunc, f, true_energy, True)
+    eval_functions = {
+        EXPRESSIVITY: lambda f: expressivity(f, parsed_circuits),
+        PATHS: lambda f: paths(f, parsed_circuits),
+        TFIM: lambda f: tfim(f, parsed_circuits, True),
+        TFIM_NON_PERIOD: lambda f: tfim(f, parsed_circuits, False),
+    }
+
+    for part in parts_to_do:
+        f = savepath.joinpath(part)
+        if skip_existing and f.exists():
+            continue
+        eval_functions[part](f)
 
 
 if __name__ == "__main__":
@@ -50,6 +97,18 @@ if __name__ == "__main__":
     parser.add_argument("filename", type=Path, help="Circuit file to load")
     parser.add_argument("savepath", type=Path, help="directory to create and save the results")
 
-    args = parser.parse_args()
+    tests = parser.add_argument_group("tests", "Wether to perform certain tests or not")
 
-    main(args.filename, args.seed, args.savepath, args.skip_existing)
+    test_types = [TFIM, PATHS, EXPRESSIVITY, TFIM_NON_PERIOD]
+    for arg in test_types:
+        tests.add_argument(f"--{arg}", action="store_true")
+
+    args: Namespace = parser.parse_args()
+
+    to_do: set[str] = set()
+    print(vars(args))
+    for arg in test_types:
+        if vars(args)[arg]:
+            to_do.add(arg)
+
+    main(args.filename, args.seed, args.savepath, args.skip_existing, to_do)
