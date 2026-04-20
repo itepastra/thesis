@@ -12,6 +12,7 @@ from evaluator.problems.tfim import make_problem_function as make_tfim_problem
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
 from quantum_circuit.proxy_config import ProxyConfig
 
+BASICS = "basics"
 EXPRESSIVITY = "expressivity"
 PATHS = "paths"
 TFIM = "tfim"
@@ -61,6 +62,14 @@ def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool)
         benchmark_qas(circuits, pfunc, f, true_energy, True)
 
 
+def basics(file: Path, circuits: list[ParametrizedQuantumCircuit]):
+    print(f"calculating basic circuit stats")
+    with open(file, "w+") as f:
+        f.write(f"index,depth,gates,parameters\n")
+        for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
+            f.write(f"{i},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
+
+
 def main(file: Path, seed: int | None, savepath: Path, skip_existing: bool, parts_to_do: set[str]):
     print("loading file")
     with open(file, "r") as f:
@@ -77,6 +86,7 @@ def main(file: Path, seed: int | None, savepath: Path, skip_existing: bool, part
         PATHS: lambda f: paths(f, parsed_circuits),
         TFIM: lambda f: tfim(f, parsed_circuits, True),
         TFIM_NON_PERIOD: lambda f: tfim(f, parsed_circuits, False),
+        BASICS: lambda f: basics(f, parsed_circuits),
     }
 
     for part in parts_to_do:
@@ -99,14 +109,13 @@ if __name__ == "__main__":
 
     tests = parser.add_argument_group("tests", "Wether to perform certain tests or not")
 
-    test_types = [TFIM, PATHS, EXPRESSIVITY, TFIM_NON_PERIOD]
+    test_types = [TFIM, PATHS, EXPRESSIVITY, TFIM_NON_PERIOD, BASICS]
     for arg in test_types:
         tests.add_argument(f"--{arg}", action="store_true")
 
     args: Namespace = parser.parse_args()
 
     to_do: set[str] = set()
-    print(vars(args))
     for arg in test_types:
         if vars(args)[arg]:
             to_do.add(arg)

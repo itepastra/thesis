@@ -25,7 +25,7 @@ def log_circ_stats(
     true_energy: float | None = None,
 ):
     file_handle.write(
-        f"{i},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters},{result[1]},{result[0]}{f",{(true_energy - result[1])/true_energy},{result[1] - true_energy}" if true_energy is not None else ""}\n"
+        f"{i},{result[1]},{result[0]}{f",{(true_energy - result[1])/true_energy},{result[1] - true_energy}" if true_energy is not None else ""}\n"
     )
 
 
@@ -40,9 +40,7 @@ def benchmark_qas(
     file_handle.write(
         f"# benchmaking {len(qas_results)} circuits{f", theoretical energy is {true_energy}" if true_energy is not None else ""}\n"
     )
-    file_handle.write(
-        f"index,depth,gates,parameters,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n"
-    )
+    file_handle.write(f"index,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n")
 
     for i, circ in tqdm(enumerate(qas_results), total=len(qas_results), desc="Circuit", leave=False):
         result = problem_function(circ)
