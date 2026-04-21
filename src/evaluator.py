@@ -1,14 +1,18 @@
 #!/usr/bin/env python
+import glob
 import json
 import os
 from argparse import ArgumentParser, Namespace
+from collections import defaultdict
+from functools import reduce
+from os.path import basename
 from pathlib import Path
 
+import pandas as pd
 from py import path
 from tqdm import tqdm
 
 from evaluator.problems import benchmark_qas
-from evaluator.problems.tfim import make_problem_function as make_tfim_problem
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
 from quantum_circuit.proxy_config import ProxyConfig
 
@@ -56,6 +60,8 @@ def paths(file: Path, circuits: list[ParametrizedQuantumCircuit]):
 
 
 def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool):
+    from evaluator.problems.tfim import make_problem_function as make_tfim_problem
+
     print(f"calculating {"periodic" if periodic else "non-periodic"} tfim energies")
     with open(file, "w+") as f:
         pfunc, true_energy = make_tfim_problem(circuits[0].qubits, periodic)
@@ -68,6 +74,43 @@ def basics(file: Path, circuits: list[ParametrizedQuantumCircuit]):
         f.write(f"index,depth,gates,parameters\n")
         for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
             f.write(f"{i},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
+
+
+def create_merged(savepath: Path):
+    output_name = "merged.csv"
+    index_name = "index"
+
+    csv_files: list[str] = [f for f in glob.glob(str(savepath.joinpath("*.csv"))) if basename(f) != output_name]
+
+    column_counts: dict[str, int] = {}
+
+    for file in tqdm(csv_files, leave=False, desc="reading csv headers"):
+        df: pd.DataFrame = pd.read_csv(file, nrows=0, comment="#")
+        for col in df.columns:
+            if col != index_name:
+                column_counts[col] = column_counts.get(col, 0) + 1
+
+    dfs: list[pd.DataFrame] = []
+
+    for file in tqdm(csv_files, leave=False, desc="reading csv files"):
+        df = pd.read_csv(file, comment="#")
+
+        if index_name not in df.columns:
+            raise ValueError(f"'{index_name}' column not found in {file}")
+
+        file_name: str = os.path.splitext(os.path.basename(file))[0]
+
+        rename_map: dict[str, str] = {}
+        for col in df.columns:
+            if col != index_name and column_counts[col] > 1:
+                rename_map[col] = f"{file_name}_{col}"
+
+        df: pd.DataFrame = df.rename(columns=rename_map)
+        dfs.append(df)
+
+    merged: pd.DataFrame = reduce(lambda left, right: pd.merge(left, right, on=index_name), dfs)
+
+    merged.to_csv(savepath.joinpath(output_name), index=False)
 
 
 def evaluate(
@@ -94,6 +137,8 @@ def evaluate(
         if skip_existing and f.exists():
             continue
         eval_functions[part](f)
+
+    create_merged(savepath)
 
 
 if __name__ == "__main__":

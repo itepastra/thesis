@@ -143,6 +143,7 @@
                 ppkgs.jax
                 ppkgs.tensorflow
                 ppkgs.keras
+                ppkgs.pandas
                 tensorcircuit
               ]))
             ];
