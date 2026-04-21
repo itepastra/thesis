@@ -70,23 +70,23 @@ def basics(file: Path, circuits: list[ParametrizedQuantumCircuit]):
             f.write(f"{i},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
 
 
-def main(file: Path, seed: int | None, savepath: Path, skip_existing: bool, parts_to_do: set[str]):
-    print("loading file")
-    with open(file, "r") as f:
-        circuits = json.load(f)
-
-    print("parsing circuits")
-    parsed_circuits: list[ParametrizedQuantumCircuit] = [parse_circuit(circuit) for circuit in circuits]
+def evaluate(
+    circuits: list[ParametrizedQuantumCircuit],
+    seed: int | None,
+    savepath: Path,
+    skip_existing: bool,
+    parts_to_do: set[str],
+):
 
     print(f"setting up save folder at {savepath}")
     os.makedirs(savepath, exist_ok=True)
 
     eval_functions = {
-        EXPRESSIVITY: lambda f: expressivity(f, parsed_circuits),
-        PATHS: lambda f: paths(f, parsed_circuits),
-        TFIM: lambda f: tfim(f, parsed_circuits, True),
-        TFIM_NON_PERIOD: lambda f: tfim(f, parsed_circuits, False),
-        BASICS: lambda f: basics(f, parsed_circuits),
+        EXPRESSIVITY: lambda f: expressivity(f, circuits),
+        PATHS: lambda f: paths(f, circuits),
+        TFIM: lambda f: tfim(f, circuits, True),
+        TFIM_NON_PERIOD: lambda f: tfim(f, circuits, False),
+        BASICS: lambda f: basics(f, circuits),
     }
 
     for part in parts_to_do:
@@ -120,4 +120,11 @@ if __name__ == "__main__":
         if vars(args)[arg]:
             to_do.add(arg)
 
-    main(args.filename, args.seed, args.savepath, args.skip_existing, to_do)
+    print("loading file")
+    with open(args.filename, "r") as f:
+        circuits = json.load(f)
+
+    print("parsing circuits")
+    parsed_circuits: list[ParametrizedQuantumCircuit] = [parse_circuit(circuit) for circuit in circuits]
+
+    evaluate(parsed_circuits, args.seed, args.savepath, args.skip_existing, to_do)
