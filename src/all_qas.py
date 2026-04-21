@@ -122,9 +122,9 @@ if __name__ == "__main__":
                 gate_sampling,
                 20,
                 20,
-                15,
-                0.3,
-                4,
+                13,
+                0.1,
+                20,
                 gate_set,
                 f"ours{"-" if args.extra else ""}{args.extra}",
             )

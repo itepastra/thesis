@@ -7,7 +7,6 @@ from io import TextIOWrapper
 
 import numpy as np
 import scipy
-import tensorcircuit as tc
 import tensorflow as tf
 from numpy.random import Generator
 from qiskit import transpile

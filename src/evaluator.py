@@ -109,6 +109,10 @@ def create_merged(savepath: Path):
         dfs.append(df)
 
     merged: pd.DataFrame = reduce(lambda left, right: pd.merge(left, right, on=index_name), dfs)
+    cols = merged.columns.tolist()
+
+    sorted_cols = ["index"] + sorted([c for c in cols if c != "index"])
+    merged = merged[sorted_cols]
 
     merged.to_csv(savepath.joinpath(output_name), index=False)
 
