@@ -13,6 +13,7 @@ from py import path
 from tqdm import tqdm
 
 from evaluator.problems import benchmark_qas
+from evaluator.problems.tfim import make_problem_function as make_tfim_problem
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
 from quantum_circuit.proxy_config import ProxyConfig
 
@@ -66,7 +67,6 @@ def paths(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 
 
 
 def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool, offset: int = 0):
-    from evaluator.problems.tfim import make_problem_function as make_tfim_problem
 
     with open(file, "w+" if offset == 0 else "a") as f:
         pfunc, true_energy = make_tfim_problem(circuits[0].qubits, periodic, tpos=EVAL_TARGET_TPOS + 1)

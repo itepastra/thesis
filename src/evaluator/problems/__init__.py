@@ -1,9 +1,12 @@
 import enum
 import logging
 import math
+import multiprocessing
 import random
 from collections.abc import Callable
 from io import TextIOWrapper
+from itertools import repeat
+from multiprocessing import Pool
 
 import numpy as np
 import scipy
@@ -22,9 +25,24 @@ def log_circ_stats(file_handle: TextIOWrapper, i: int, result: tuple[bool, float
     )
 
 
+_problem_function = None
+_worker_pos = None
+
+
+def init_worker(counter):
+    global _worker_pos
+    with counter.get_lock():
+        _worker_pos = counter.value
+        counter.value += 1
+
+
+def exec_problem_function(circ: ParametrizedQuantumCircuit) -> tuple[bool, float]:
+    return _problem_function(circ, _worker_pos)
+
+
 def benchmark_qas(
     qas_results: list[ParametrizedQuantumCircuit],
-    problem_function: Callable[[ParametrizedQuantumCircuit], tuple[bool, float]],
+    problem_function: Callable[[ParametrizedQuantumCircuit, int], tuple[bool, float]],
     file_handle: TextIOWrapper,
     offset: int,
     true_energy: float | None = None,
@@ -32,6 +50,8 @@ def benchmark_qas(
     tpos=0,
     desc="Circuit",
 ):
+    global _problem_function
+    _problem_function = problem_function
     succes_data: list[tuple[ParametrizedQuantumCircuit, int, tuple[bool, float]]] = []
     file_handle.write(
         f"# benchmaking {len(qas_results)} circuits{f", theoretical energy is {true_energy}" if true_energy is not None else ""}\n"
@@ -39,13 +59,15 @@ def benchmark_qas(
     if offset == 0:
         file_handle.write(f"index,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n")
 
-    for i, circ in tqdm(enumerate(qas_results), total=len(qas_results), desc=desc, leave=False, position=tpos):
-        result = problem_function(circ)
-        log_circ_stats(file_handle, i + offset, result, true_energy)
-        if result[0]:
-            succes_data.append((circ, i, result))
-            if not continue_after_found:
-                break
+    counter = multiprocessing.Value("i", 0)
+    with Pool(processes=5, initializer=init_worker, initargs=(counter,)) as p:
+        for i, result in tqdm(
+            enumerate(p.imap(exec_problem_function, qas_results)), total=len(qas_results), desc=desc, leave=False
+        ):
+            if result[0]:
+                succes_data.append((qas_results[i], i, result))
+                if not continue_after_found:
+                    break
 
     return succes_data
 

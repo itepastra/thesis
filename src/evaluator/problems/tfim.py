@@ -73,21 +73,21 @@ def make_problem_function(
     success_accuracy: float = 0.01,  # within 1%
     seed: int | None = None,
     tpos: int = 1,
-) -> tuple[Callable[[ParametrizedQuantumCircuit], tuple[bool, float]], float]:
+) -> tuple[Callable[[ParametrizedQuantumCircuit, int], tuple[bool, float]], float]:
 
     rng = np.random.default_rng(seed)
 
     hamiltonian = tfim_hamiltonian(qubits, periodic)
     true_energy = exact_ground_energy(hamiltonian)
 
-    def tfim_problem(circ: ParametrizedQuantumCircuit) -> tuple[bool, float]:
+    def tfim_problem(circ: ParametrizedQuantumCircuit, tpos_offset: int) -> tuple[bool, float]:
 
         tcirc_function = build_tensor_circuit_factory(
             circ, [QuantumGate(QuantumType.Hadamard, (i,)) for i in range(circ.qubits)], hamiltonian
         )
 
         vec_value_and_grad = tc.backend.jit(tc.backend.vectorized_value_and_grad(tcirc_function))
-        best_params, best_energy = optimize_circuit_adam(circ, vec_value_and_grad, tpos=tpos)
+        best_params, best_energy = optimize_circuit_adam(circ, vec_value_and_grad, tpos=tpos + tpos_offset)
 
         return (
             bool(np.any(true_energy * (1 - success_accuracy) < best_energy < true_energy * (1 + success_accuracy))),
