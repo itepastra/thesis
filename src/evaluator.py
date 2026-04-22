@@ -22,6 +22,8 @@ PATHS = "paths"
 TFIM = "tfim"
 TFIM_NON_PERIOD = "tfim_non_period"
 
+EVAL_TARGET_TPOS = 2
+
 
 def parse_circuit(circuit) -> ParametrizedQuantumCircuit:
     c = ParametrizedQuantumCircuit(circuit["qubits"])
@@ -35,45 +37,59 @@ def parse_circuit(circuit) -> ParametrizedQuantumCircuit:
     return c
 
 
-def expressivity(file: Path, circuits: list[ParametrizedQuantumCircuit]):
-    print(f"calculating expressivities")
-    with open(file, "w+") as f:
-        f.write("index,expressivity\n")
-        for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
-            f.write(f"{i},{circ.expressivity(ProxyConfig(circ.qubits))}\n")
+def expressivity(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 0):
+
+    with open(file, "w+" if offset == 0 else "a") as f:
+        if offset == 0:
+            f.write("index,expressivity\n")
+        for i, circ in tqdm(
+            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=EXPRESSIVITY
+        ):
+            f.write(f"{i+offset},{circ.expressivity(ProxyConfig(circ.qubits))}\n")
 
 
-def paths(file: Path, circuits: list[ParametrizedQuantumCircuit]):
+def paths(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 0):
     from quantum_circuit.proxies.path import count_paths, make_dag
-
-    print(f"calculating paths")
 
     def calc_paths(circ: ParametrizedQuantumCircuit) -> int:
         dag = make_dag(circ)
         node_count = len(dag)
         return count_paths(dag, 0, node_count - 1, [None for _ in range(node_count)])
 
-    with open(file, "w+") as f:
-        f.write("index,paths\n")
-        for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
+    with open(file, "w+" if offset == 0 else "a") as f:
+        if offset == 0:
+            f.write("index,paths\n")
+        for i, circ in tqdm(
+            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=PATHS
+        ):
             f.write(f"{i},{calc_paths(circ)}\n")
 
 
-def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool):
+def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool, offset: int = 0):
     from evaluator.problems.tfim import make_problem_function as make_tfim_problem
 
-    print(f"calculating {"periodic" if periodic else "non-periodic"} tfim energies")
-    with open(file, "w+") as f:
-        pfunc, true_energy = make_tfim_problem(circuits[0].qubits, periodic)
-        benchmark_qas(circuits, pfunc, f, true_energy, True)
+    with open(file, "w+" if offset == 0 else "a") as f:
+        pfunc, true_energy = make_tfim_problem(circuits[0].qubits, periodic, tpos=EVAL_TARGET_TPOS + 1)
+        benchmark_qas(
+            circuits,
+            pfunc,
+            f,
+            offset,
+            true_energy,
+            True,
+            desc="periodic tfim" if periodic else "non periodic tfim",
+            tpos=EVAL_TARGET_TPOS,
+        )
 
 
-def basics(file: Path, circuits: list[ParametrizedQuantumCircuit]):
-    print(f"calculating basic circuit stats")
-    with open(file, "w+") as f:
-        f.write(f"index,depth,gates,parameters\n")
-        for i, circ in tqdm(enumerate(circuits), total=len(circuits), leave=False):
-            f.write(f"{i},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
+def basics(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 0):
+    with open(file, "w+" if offset == 0 else "a") as f:
+        if offset == 0:
+            f.write(f"index,depth,gates,parameters\n")
+        for i, circ in tqdm(
+            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=BASICS
+        ):
+            f.write(f"{i + offset},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
 
 
 def create_merged(savepath: Path):
@@ -123,24 +139,28 @@ def evaluate(
     savepath: Path,
     skip_existing: bool,
     parts_to_do: set[str],
+    chunk_size: int = 10,
 ):
 
     print(f"setting up save folder at {savepath}")
     os.makedirs(savepath, exist_ok=True)
 
     eval_functions = {
-        EXPRESSIVITY: lambda f: expressivity(f, circuits),
-        PATHS: lambda f: paths(f, circuits),
-        TFIM: lambda f: tfim(f, circuits, True),
-        TFIM_NON_PERIOD: lambda f: tfim(f, circuits, False),
-        BASICS: lambda f: basics(f, circuits),
+        EXPRESSIVITY: lambda f, circs, offset: expressivity(f, circs, offset),
+        PATHS: lambda f, circs, offset: paths(f, circs, offset),
+        TFIM: lambda f, circs, offset: tfim(f, circs, True, offset),
+        TFIM_NON_PERIOD: lambda f, circs, offset: tfim(f, circs, False, offset),
+        BASICS: lambda f, circs, offset: basics(f, circs, offset),
     }
 
-    for part in parts_to_do:
-        f = savepath.joinpath(f"{part}.csv")
-        if skip_existing and f.exists():
-            continue
-        eval_functions[part](f)
+    offset = 0
+    for chunk in tqdm(range(0, len(circuits), chunk_size), desc="Chunk", leave=False):
+        for part in tqdm(parts_to_do, desc="Eval Function", leave=False, position=1):
+            f = savepath.joinpath(f"{part}.csv")
+            if skip_existing and f.exists():
+                continue
+            eval_functions[part](f, circuits[chunk * chunk_size : (chunk + 1) * chunk_size], offset)
+        offset += chunk_size
 
     create_merged(savepath)
 

@@ -72,6 +72,7 @@ def make_problem_function(
     periodic: bool = True,  # make the first and last node connect or not
     success_accuracy: float = 0.01,  # within 1%
     seed: int | None = None,
+    tpos: int = 1,
 ) -> tuple[Callable[[ParametrizedQuantumCircuit], tuple[bool, float]], float]:
 
     rng = np.random.default_rng(seed)
@@ -86,7 +87,7 @@ def make_problem_function(
         )
 
         vec_value_and_grad = tc.backend.jit(tc.backend.vectorized_value_and_grad(tcirc_function))
-        best_params, best_energy = optimize_circuit_adam(circ, vec_value_and_grad)
+        best_params, best_energy = optimize_circuit_adam(circ, vec_value_and_grad, tpos=tpos)
 
         return (
             bool(np.any(true_energy * (1 - success_accuracy) < best_energy < true_energy * (1 + success_accuracy))),

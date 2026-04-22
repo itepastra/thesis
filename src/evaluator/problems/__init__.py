@@ -16,13 +16,7 @@ from tqdm import tqdm
 from quantum_circuit import ParametrizedQuantumCircuit
 
 
-def log_circ_stats(
-    file_handle: TextIOWrapper,
-    i: int,
-    circ: ParametrizedQuantumCircuit,
-    result: tuple[bool, float],
-    true_energy: float | None = None,
-):
+def log_circ_stats(file_handle: TextIOWrapper, i: int, result: tuple[bool, float], true_energy: float | None = None):
     file_handle.write(
         f"{i},{result[1]},{result[0]}{f",{(true_energy - result[1])/true_energy},{result[1] - true_energy}" if true_energy is not None else ""}\n"
     )
@@ -32,18 +26,22 @@ def benchmark_qas(
     qas_results: list[ParametrizedQuantumCircuit],
     problem_function: Callable[[ParametrizedQuantumCircuit], tuple[bool, float]],
     file_handle: TextIOWrapper,
+    offset: int,
     true_energy: float | None = None,
     continue_after_found: bool = False,
+    tpos=0,
+    desc="Circuit",
 ):
     succes_data: list[tuple[ParametrizedQuantumCircuit, int, tuple[bool, float]]] = []
     file_handle.write(
         f"# benchmaking {len(qas_results)} circuits{f", theoretical energy is {true_energy}" if true_energy is not None else ""}\n"
     )
-    file_handle.write(f"index,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n")
+    if offset == 0:
+        file_handle.write(f"index,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n")
 
-    for i, circ in tqdm(enumerate(qas_results), total=len(qas_results), desc="Circuit", leave=False):
+    for i, circ in tqdm(enumerate(qas_results), total=len(qas_results), desc=desc, leave=False, position=tpos):
         result = problem_function(circ)
-        log_circ_stats(file_handle, i, circ, result, true_energy)
+        log_circ_stats(file_handle, i + offset, result, true_energy)
         if result[0]:
             succes_data.append((circ, i, result))
             if not continue_after_found:
