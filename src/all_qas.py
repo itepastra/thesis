@@ -79,7 +79,7 @@ if __name__ == "__main__":
     strat = {"ga": SearchStrategy.GAQAS, "qd": SearchStrategy.QDQAS, "tf": SearchStrategy.TFQAS}[args.strategy]
     proxy_config = ProxyConfig(args.qubits)
 
-    gate_set = [QuantumType.Hadamard, QuantumType.RX, QuantumType.RY, QuantumType.RZ, QuantumType.CX]
+    gate_set = [QuantumType.RX, QuantumType.RY, QuantumType.RZ, QuantumType.RXX, QuantumType.RYY, QuantumType.RZZ]
 
     def gate_sampling(random: Random):
         return sampling.sample_by_gates(args.qubits, args.depth, gate_set, random)
