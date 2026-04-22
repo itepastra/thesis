@@ -60,9 +60,13 @@ def benchmark_qas(
         file_handle.write(f"index,energy,succes{",error_rel,error_abs"if true_energy is not None else ""}\n")
 
     counter = multiprocessing.Value("i", 0)
-    with Pool(processes=5, initializer=init_worker, initargs=(counter,)) as p:
+    with Pool(initializer=init_worker, initargs=(counter,)) as p:
         for i, result in tqdm(
-            enumerate(p.imap(exec_problem_function, qas_results)), total=len(qas_results), desc=desc, leave=False
+            enumerate(p.imap(exec_problem_function, qas_results)),
+            total=len(qas_results),
+            desc=desc,
+            leave=False,
+            colour="cyan",
         ):
             if result[0]:
                 succes_data.append((qas_results[i], i, result))
@@ -77,7 +81,7 @@ def optimize_circuit_adam(
 ):
     param = tf.Variable(initial_value=tf.random.uniform(shape=[batch_size, circ.parameters]) * math.tau - math.pi)
     opt = tf.keras.optimizers.Adam(1e-2)
-    bar = tqdm(range(max_iter), desc=f"Step (compiling)", leave=False, position=tpos)
+    bar = tqdm(range(max_iter), desc=f"Step (compiling)", leave=False, position=tpos, colour="green")
     e_last = np.full((batch_size,), np.inf)
     for i in bar:
         e, grad = vec_value_and_grad(param)

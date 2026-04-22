@@ -44,7 +44,12 @@ def expressivity(file: Path, circuits: list[ParametrizedQuantumCircuit], offset:
         if offset == 0:
             f.write("index,expressivity\n")
         for i, circ in tqdm(
-            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=EXPRESSIVITY
+            enumerate(circuits),
+            total=len(circuits),
+            leave=False,
+            position=EVAL_TARGET_TPOS,
+            desc=EXPRESSIVITY,
+            colour="cyan",
         ):
             f.write(f"{i+offset},{circ.expressivity(ProxyConfig(circ.qubits))}\n")
 
@@ -61,7 +66,7 @@ def paths(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 
         if offset == 0:
             f.write("index,paths\n")
         for i, circ in tqdm(
-            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=PATHS
+            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=PATHS, colour="cyan"
         ):
             f.write(f"{i},{calc_paths(circ)}\n")
 
@@ -87,7 +92,7 @@ def basics(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int =
         if offset == 0:
             f.write(f"index,depth,gates,parameters\n")
         for i, circ in tqdm(
-            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=BASICS
+            enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=BASICS, colour="cyan"
         ):
             f.write(f"{i + offset},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
 
@@ -152,12 +157,12 @@ def evaluate(
         BASICS: lambda f, circs, offset: basics(f, circs, offset),
     }
 
-    for start in tqdm(range(0, len(circuits), chunk_size), desc="Chunk", leave=False):
+    for start in tqdm(range(0, len(circuits), chunk_size), desc="Chunk", leave=False, colour="red"):
         end = min(start + chunk_size, len(circuits))
         chunk_circuits = circuits[start:end]
         expected_indices = set(range(start, end))
 
-        for part in tqdm(parts_to_do, desc="Eval Function", leave=False, position=1):
+        for part in tqdm(parts_to_do, desc="Eval Function", leave=False, position=1, colour="magenta"):
             f = savepath.joinpath(f"{part}.csv")
 
             if skip_existing and f.exists():
