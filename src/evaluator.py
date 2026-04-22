@@ -139,9 +139,8 @@ def evaluate(
     savepath: Path,
     skip_existing: bool,
     parts_to_do: set[str],
-    chunk_size: int = 10,
+    chunk_size: int = 25,
 ):
-
     print(f"setting up save folder at {savepath}")
     os.makedirs(savepath, exist_ok=True)
 
@@ -153,14 +152,23 @@ def evaluate(
         BASICS: lambda f, circs, offset: basics(f, circs, offset),
     }
 
-    offset = 0
-    for chunk in tqdm(range(0, len(circuits), chunk_size), desc="Chunk", leave=False):
+    for start in tqdm(range(0, len(circuits), chunk_size), desc="Chunk", leave=False):
+        end = min(start + chunk_size, len(circuits))
+        chunk_circuits = circuits[start:end]
+        expected_indices = set(range(start, end))
+
         for part in tqdm(parts_to_do, desc="Eval Function", leave=False, position=1):
             f = savepath.joinpath(f"{part}.csv")
+
             if skip_existing and f.exists():
-                continue
-            eval_functions[part](f, circuits[chunk * chunk_size : (chunk + 1) * chunk_size], offset)
-        offset += chunk_size
+                df = pd.read_csv(f, usecols=["index"], comment="#")
+                existing_indices = set(df["index"])
+
+                # skip only if this chunk is fully present
+                if expected_indices.issubset(existing_indices):
+                    continue
+
+            eval_functions[part](f, chunk_circuits, start)
 
     create_merged(savepath)
 
