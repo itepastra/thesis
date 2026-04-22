@@ -91,7 +91,7 @@ if __name__ == "__main__":
         case SearchStrategy.TFQAS:
 
             def cheap_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                return [float(x) for x in paths_proxy(circs)]
+                return [-float(x) for x in paths_proxy(circs)]
 
             def expensive_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
                 return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
