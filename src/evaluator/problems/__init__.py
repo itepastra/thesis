@@ -68,6 +68,7 @@ def benchmark_qas(
             leave=False,
             colour="cyan",
         ):
+            log_circ_stats(file_handle, i, result, true_energy)
             if result[0]:
                 succes_data.append((qas_results[i], i, result))
                 if not continue_after_found:
