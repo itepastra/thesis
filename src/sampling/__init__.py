@@ -1,3 +1,5 @@
+from collections.abc import Callable
+from functools import reduce
 from random import Random
 
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
@@ -34,9 +36,7 @@ def sample_by_layers(
                 for i in range(0 if even_parity else 1, (qubits if even_qubits else qubits - 1), 2)
             ]
 
-        pqc.append_layer(
-            [QuantumGate(gate_type, pos) for pos in positions], collapse_non_overlapping
-        )
+        pqc.append_layer([QuantumGate(gate_type, pos) for pos in positions], collapse_non_overlapping)
 
     return pqc
 
@@ -54,9 +54,34 @@ def sample_by_gates(
         else:
             direction = random.random() < 0.5
             pqc.append_gate(
-                QuantumGate(
-                    gate_type, (pos, (pos + 1) % qubits) if direction else ((pos + 1) % qubits, pos)
-                )
+                QuantumGate(gate_type, (pos, (pos + 1) % qubits) if direction else ((pos + 1) % qubits, pos))
             )
 
     return pqc
+
+
+# ===========
+# = Filters =
+# ===========
+# Filters wrap around existing sampling functions to add constraints
+
+
+def ignore_too_many_two_qubit_gates(
+    sampling_func: Callable[[Random], ParametrizedQuantumCircuit], max_two_qubit_prop: float
+) -> Callable[[Random], ParametrizedQuantumCircuit]:
+    assert max_two_qubit_prop <= 1.0
+
+    def filtered(random: Random):
+        prop = 1.1
+
+        while prop > max_two_qubit_prop:
+            circ = sampling_func(random)
+            total_gates = sum(len(layer) for layer in circ.gates)
+            two_qubit_gates = sum(
+                len([gate for gate in layer if not gate.type.is_single_qubit()]) for layer in circ.gates
+            )
+            prop = two_qubit_gates / total_gates
+
+        return circ
+
+    return filtered

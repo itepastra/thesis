@@ -22,6 +22,7 @@ EXPRESSIVITY = "expressivity"
 PATHS = "paths"
 TFIM = "tfim"
 TFIM_NON_PERIOD = "tfim_non_period"
+PRINTED = "printed"
 
 EVAL_TARGET_TPOS = 2
 
@@ -68,7 +69,7 @@ def paths(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 
         for i, circ in tqdm(
             enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=PATHS, colour="cyan"
         ):
-            f.write(f"{i},{calc_paths(circ)}\n")
+            f.write(f"{i+offset},{calc_paths(circ)}\n")
 
 
 def tfim(file: Path, circuits: list[ParametrizedQuantumCircuit], periodic: bool, offset: int = 0):
@@ -95,6 +96,12 @@ def basics(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int =
             enumerate(circuits), total=len(circuits), leave=False, position=EVAL_TARGET_TPOS, desc=BASICS, colour="cyan"
         ):
             f.write(f"{i + offset},{len(circ.gates)},{sum(len(layer) for layer in circ.gates)},{circ.parameters}\n")
+
+
+def printed_circuits(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 0):
+    with open(file, "w+" if offset == 0 else "a") as f:
+        for i, circ in enumerate(circuits):
+            f.write(f"Circuit {i + offset}:\n{circ}\n\n\n")
 
 
 def create_merged(savepath: Path):
@@ -155,7 +162,10 @@ def evaluate(
         TFIM: lambda f, circs, offset: tfim(f, circs, True, offset),
         TFIM_NON_PERIOD: lambda f, circs, offset: tfim(f, circs, False, offset),
         BASICS: lambda f, circs, offset: basics(f, circs, offset),
+        PRINTED: lambda f, circs, offset: printed_circuits(f, circs, offset),
     }
+
+    extensions = {EXPRESSIVITY: "csv", PATHS: "csv", TFIM: "csv", TFIM_NON_PERIOD: "csv", BASICS: "csv", PRINTED: "txt"}
 
     for start in tqdm(range(0, len(circuits), chunk_size), desc="Chunk", leave=False, colour="red"):
         end = min(start + chunk_size, len(circuits))
@@ -163,7 +173,7 @@ def evaluate(
         expected_indices = set(range(start, end))
 
         for part in tqdm(parts_to_do, desc="Eval Function", leave=False, position=1, colour="magenta"):
-            f = savepath.joinpath(f"{part}.csv")
+            f = savepath.joinpath(f"{part}.{extensions[part]}")
 
             if skip_existing and f.exists():
                 df = pd.read_csv(f, usecols=["index"], comment="#")
@@ -191,7 +201,7 @@ if __name__ == "__main__":
 
     tests = parser.add_argument_group("tests", "Wether to perform certain tests or not")
 
-    test_types = [TFIM, PATHS, EXPRESSIVITY, TFIM_NON_PERIOD, BASICS]
+    test_types = [TFIM, PATHS, EXPRESSIVITY, TFIM_NON_PERIOD, BASICS, PRINTED]
     for arg in test_types:
         tests.add_argument(f"--{arg}", action="store_true")
 

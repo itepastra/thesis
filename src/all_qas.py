@@ -16,6 +16,7 @@ from quantum_circuit import ParametrizedQuantumCircuit, QuantumType
 from quantum_circuit.proxies.expressivity import calculate_expressivity
 from quantum_circuit.proxies.path import paths_proxy
 from quantum_circuit.proxy_config import ProxyConfig
+from sampling import ignore_too_many_two_qubit_gates
 from tf_qas import TrainingFreeSettings
 
 
@@ -104,7 +105,7 @@ if __name__ == "__main__":
                 args.depth,
                 cheap_proxy,
                 expensive_proxy,
-                layer_sampling,
+                ignore_too_many_two_qubit_gates(layer_sampling, 0.5),
                 initial_samples,
                 t2_samples,
                 f"ours-{initial_samples}-{t2_samples}{"-" if args.extra else ""}{args.extra}",

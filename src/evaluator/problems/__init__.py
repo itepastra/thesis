@@ -44,7 +44,7 @@ def benchmark_qas(
     qas_results: list[ParametrizedQuantumCircuit],
     problem_function: Callable[[ParametrizedQuantumCircuit, int], tuple[bool, float]],
     file_handle: TextIOWrapper,
-    offset: int,
+    offset: int = 0,
     true_energy: float | None = None,
     continue_after_found: bool = False,
     tpos=0,
@@ -68,9 +68,9 @@ def benchmark_qas(
             leave=False,
             colour="cyan",
         ):
-            log_circ_stats(file_handle, i, result, true_energy)
+            log_circ_stats(file_handle, i + offset, result, true_energy)
             if result[0]:
-                succes_data.append((qas_results[i], i, result))
+                succes_data.append((qas_results[i], i + offset, result))
                 if not continue_after_found:
                     break
 

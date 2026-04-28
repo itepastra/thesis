@@ -1,7 +1,7 @@
 
 #import "@preview/touying:0.6.1": *
 #import "@preview/physica:0.9.5": *
-#import "@preview/cetz:0.3.4"
+#import "@preview/cetz:0.5.0"
 #import "@preview/typsium:0.2.0": ce
 #import "@preview/numbly:0.1.0": numbly
 #import "@preview/quill:0.7.2": *
@@ -19,7 +19,7 @@
     title: "Training-Free QAS", // Required
     date: datetime.today().display(),
     authors: ("Noa Aarts"),
-  
+
     // Optional Styling (for more / explanation see in the typst universe)
     // ignore how bad the images look i'll adjust it until Monday
     title-color: blue.darken(10%),
@@ -52,7 +52,7 @@
 == Variational Quantum Algorithms
 
 - NISQ era
- 
+
 - Classical optimisation
 
 - Parametrized Quantum Circuit
@@ -133,7 +133,7 @@ Following Neural Predictor based QAS@npqas
 #slide(composer: (auto, auto))[
 - *'zero-cost'*
   - below $7.8 times 10^(-4)$s
-  #text(fill:orange)[- $O("Operations" times "Qubits"^2)$] 
+  #text(fill:orange)[- $O("Operations" times "Qubits"^2)$]
 
 #pause
 1. Represent as Directed acyclic graph
@@ -156,7 +156,7 @@ Assumption: Expressibility $|->$ Performance
 - Particularly valueable without prior knowledge
 
 #block(fill: blue.lighten(85%), inset: 12pt, radius: 6pt, stroke: 2pt + blue)[
-  *Expressibility:* \ 
+  *Expressibility:* \
   The capability to uniformly reach the entire Hilbert space.
 ]
 
@@ -192,7 +192,7 @@ Assumption: Expressibility $|->$ Performance
   - Only Path
     - Fast proxy (each $~ 2 times 10^(-4) "s"$)
     - Many ADAM queries
-  
+
   - Only Expressibility
     - Slower proxy (each $~ 0.21 "s"$)
     - Fewer queries (each $~ 10 "s"$)
@@ -232,11 +232,11 @@ However:
 
 == What will I do (differently)
 
-Sampling: 
+Sampling:
 - Evolutionary Algorithm instead of random sampling
   - With hardware constraints
-  - Can build on parts of "Genetic optimization of ansatz 
-    expressibility for enhanced variational quantum algorithm 
+  - Can build on parts of "Genetic optimization of ansatz
+    expressibility for enhanced variational quantum algorithm
     performance."@genetic-expressibility
 
 #pause

@@ -1,6 +1,6 @@
 #import "@preview/touying:0.6.1": *
 #import "@preview/physica:0.9.5": *
-#import "@preview/cetz:0.3.4"
+#import "@preview/cetz:0.5.0"
 #import "@preview/typsium:0.2.0": ce
 #import "@preview/numbly:0.1.0": numbly
 #import "@preview/fletcher:0.5.8": *
@@ -55,6 +55,151 @@
 #let lg(color1, color2) = gradient.linear(color2, color1, color2, angle: 90deg)
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
+
+= Week 24
+
+Evaluator
+
+== Content
+
+- Status Overview
+- Evaluator explained
+- TF-QAS runs
+
+== Status
+
+#let rect-around(name) = cetz.draw.rect(name+".south-west", name+".north-east", radius: 0.4, name: name+"-rect");
+#let group-pad = 0.4
+
+#let cloud(a, b, size: 0.5, ..style) = {
+  import cetz.draw: *
+
+  get-ctx(ctx => {
+    let (ctx, a, b) = cetz.coordinate.resolve(ctx, a, b)
+    let (ax, ay, _) = a
+    let (bx, by, _) = b
+
+    merge-path({
+      // top line
+      for x in range(0, int((bx - ax) / size)) {
+        arc((ax + x * size, ay), start: 180deg, stop: 0deg, radius: size/2.0)
+      }
+
+      // right line
+      for y in range(0, int((ay - by)/ size)) {
+        arc((bx, ay - y * size), start: 90deg, stop: -90deg, radius: size/2.0)
+      }
+
+      // bottom line
+      for x in range(0, int((bx - ax) / size)) {
+        arc((bx - x * size, by), start: 360deg, stop: 180deg, radius: size/2.0)
+      }
+
+      // left line
+      for y in range(0, int((ay - by)/size)) {
+        arc((ax, by + y * size), start: 270deg, stop: 90deg, radius: size/2.0)
+      }
+    }, close: true, ..style)
+  })
+}
+
+#let cloud-around(name) = cloud(
+  name + ".north-west",
+  name + ".south-east",
+  name: name + "-rect"
+)
+#slide[
+  #align(center + horizon)[
+  #cetz-canvas(length: 0.8cm, {
+    import cetz.draw: *
+
+    content((0.0, 0.0), "Layerwise Sampling", name: "layerwise", padding: 0.5)
+    rect-around("layerwise")
+
+    content((10.0, 0.0), "Gatewise Sampling", name: "gatewise", padding: 0.5)
+    rect-around("gatewise")
+
+    content((10.0, 3.0), "Architecture layout", name: "arch", padding: 0.5)
+    cloud-around("arch")
+
+    set-style(line: ( mark: (end: ">", scale: 2.0)))
+    line("arch", "gatewise-rect")
+
+    content((-5.0, -8.0), [TF-QAS@training-free], name: "tfqas", padding: 0.5)
+    rect-around("tfqas")
+
+    content((15.0, -8.0), [GA-QAS@genetic-expressibility], name: "gaqas", padding: 0.5)
+    cloud-around("gaqas")
+
+    content((3.0, -5.0), "our\nTF-QAS", name: "tfqas-ours", padding: 0.5)
+    rect-around("tfqas-ours")
+
+    content((9.0, -5.0), "our\nGA-QAS", name: "gaqas-ours", padding: 0.5)
+    rect-around("gaqas-ours")
+
+    content((-6.0, -4.0), "Cost function(s)", name: "costs", padding: 0.5)
+    rect-around("costs")
+
+    rect(
+        (v => cetz.vector.add(v, (-group-pad, -group-pad)),"layerwise-rect.south-west"),
+        (v => cetz.vector.add(v, (group-pad, group-pad)), "gatewise-rect.north-east"),
+        stroke: green, radius: 0.5, name: "samplers"
+    )
+
+    rect(
+        (v => cetz.vector.add(v, (-group-pad, -group-pad)),"tfqas-ours-rect.south-west"),
+        (v => cetz.vector.add(v, (group-pad, group-pad)), "gaqas-ours-rect.north-east"),
+        stroke: blue, radius: 0.5, name: "searches"
+    )
+
+    line("samplers", "searches")
+    line("costs", "searches")
+
+    content((6.0, -10.0), text(stroke: purple)[Evaluator], name:"evaluator", padding: 0.5)
+    rect-around("evaluator")
+
+    line("searches", "evaluator-rect")
+    line("tfqas-rect", "evaluator-rect")
+    line("gaqas", "evaluator-rect")
+
+  })
+  ]
+]
+
+== Evaluator
+
+Inputs:
+- list of PQCs / output from QAS
+  - JSON format
+  - Very minimal
+- What to test
+- Where to save outputs
+
+Outputs:
+- results of tests for every circuit merged into a single csv file
+
+
+== Evaluator Tests
+
+- Proxy results
+  - Path proxy
+  - Expressibility proxy
+- Optimization (with TensorCircuit):
+  - Transverse-Field Ising-Model (both periodic and non-periodic)
+  - If I define Hamiltonians I can add more easily
+- Basic statistics:
+  - gate count
+  - parameter count
+  - circuit depth
+  - two qubit gates
+
+== TF-QAS Runs
+
+I modified the TF-QAS@training-free code to export the circuits it finds to JSON
+
+Then I ran the `main-result.sh` script to gather all the JSON files
+
+Still have to run the Evaluator on the results
 
 = Week ??
 
