@@ -175,7 +175,7 @@ def evaluate(
         for part in tqdm(parts_to_do, desc="Eval Function", leave=False, position=1, colour="magenta"):
             f = savepath.joinpath(f"{part}.{extensions[part]}")
 
-            if skip_existing and f.exists():
+            if skip_existing and f.exists() and os.path.splitext(f)[1] == ".csv":
                 df = pd.read_csv(f, usecols=["index"], comment="#")
                 existing_indices = set(df["index"])
 
