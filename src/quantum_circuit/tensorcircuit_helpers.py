@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+import numpy as np
 import tensorcircuit as tc
 
 from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
@@ -43,6 +44,12 @@ def build_tensor_circuit_factory(
                 tcirc.rzz(
                     gate.qubits[0], gate.qubits[1], theta=paramc[current_param_index]  # ty:ignore[index-out-of-bounds]
                 )
+            elif gate.type == QuantumType.XX:
+                tcirc.rxx(gate.qubits[0], gate.qubits[1], theta=np.pi)  # ty:ignore[index-out-of-bounds]
+            elif gate.type == QuantumType.YY:
+                tcirc.ryy(gate.qubits[0], gate.qubits[1], theta=np.pi)  # ty:ignore[index-out-of-bounds]
+            elif gate.type == QuantumType.ZZ:
+                tcirc.rzz(gate.qubits[0], gate.qubits[1], theta=np.pi)  # ty:ignore[index-out-of-bounds]
             elif gate.type == QuantumType.CRX:
                 tcirc.crx(
                     gate.qubits[0], gate.qubits[1], theta=paramc[current_param_index]  # ty:ignore[index-out-of-bounds]

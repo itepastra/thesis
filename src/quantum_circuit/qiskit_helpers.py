@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.circuit.parameter import Parameter
 from qiskit.circuit.parametertable import ParameterView
@@ -11,14 +12,12 @@ if TYPE_CHECKING:
     from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
 
 
-def add_qubit_gate(
-    circ: QuantumCircuit, gate: QuantumGate, thetas: ParameterVector, current_theta_index: int
-) -> int:
+def add_qubit_gate(circ: QuantumCircuit, gate: QuantumGate, thetas: ParameterVector, current_theta_index: int) -> int:
     from quantum_circuit import QuantumType
 
     match gate.type:
         case QuantumType.Identity:
-            pass
+            circ.id(gate.qubits[0])
         case QuantumType.Hadamard:
             circ.h(gate.qubits[0])
         case QuantumType.X:
@@ -26,29 +25,27 @@ def add_qubit_gate(
         case QuantumType.RX:
             circ.rx(thetas[current_theta_index], gate.qubits[0])
         case QuantumType.RXX:
-            circ.rxx(
-                thetas[current_theta_index], gate.qubits[0], gate.qubits[1]
-            )  # ty:ignore[index-out-of-bounds]
+            circ.rxx(thetas[current_theta_index], gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
         case QuantumType.Y:
             circ.y(gate.qubits[0])
         case QuantumType.RY:
             circ.ry(thetas[current_theta_index], gate.qubits[0])
         case QuantumType.RYY:
-            circ.ryy(
-                thetas[current_theta_index], gate.qubits[0], gate.qubits[1]
-            )  # ty:ignore[index-out-of-bounds]
+            circ.ryy(thetas[current_theta_index], gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
         case QuantumType.Z:
             circ.z(gate.qubits[0])
         case QuantumType.RZ:
             circ.rz(thetas[current_theta_index], gate.qubits[0])
         case QuantumType.RZZ:
-            circ.rzz(
-                thetas[current_theta_index], gate.qubits[0], gate.qubits[1]
-            )  # ty:ignore[index-out-of-bounds]
+            circ.rzz(thetas[current_theta_index], gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
+        case QuantumType.XX:
+            circ.rxx(np.pi, gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
+        case QuantumType.YY:
+            circ.ryy(np.pi, gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
+        case QuantumType.ZZ:
+            circ.rzz(np.pi, gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
         case QuantumType.CRX:
-            circ.crx(
-                thetas[current_theta_index], gate.qubits[0], gate.qubits[1]
-            )  # ty:ignore[index-out-of-bounds]
+            circ.crx(thetas[current_theta_index], gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
         case QuantumType.CX:
             circ.cx(gate.qubits[0], gate.qubits[1])  # ty:ignore[index-out-of-bounds]
         case QuantumType.CZ:
