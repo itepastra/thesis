@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from itertools import pairwise
 from typing import TYPE_CHECKING
 
@@ -30,20 +31,19 @@ def single_circuit_param_fidelity(
 
     number_of_initial_circuits = 2 * samples
 
-    params: NDArray[np.float64] = np.random.uniform(
-        -np.pi, np.pi, (len(thetas), number_of_initial_circuits)
-    )
+    params: NDArray[np.float64] = np.random.uniform(-np.pi, np.pi, (len(thetas), number_of_initial_circuits))
 
     binds = [{param: params[idx] for idx, param in enumerate(thetas.params)}]
+
+    if len(binds[0]) == 0:
+        print(f"circuit without parameters\n{circ}, setting expressivity to infinity")
+        return np.array([np.inf])
 
     job = backend.run([tqc], parameter_binds=binds)
     result = job.result()
 
     sv: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = np.array(
-        [
-            np.asarray(result.get_statevector(i), dtype=np.complex128)
-            for i in range(number_of_initial_circuits)
-        ]
+        [np.asarray(result.get_statevector(i), dtype=np.complex128) for i in range(number_of_initial_circuits)]
     )
     left: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = sv[:samples]
     right: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = sv[samples:]
