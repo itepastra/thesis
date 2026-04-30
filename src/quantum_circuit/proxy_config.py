@@ -15,3 +15,5 @@ class ProxyConfig:
 
     expressivity_samples: int = 1000
     expressivity_bins: int = 100
+
+    tqdm_depth: int = 1

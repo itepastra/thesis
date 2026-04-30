@@ -66,7 +66,6 @@ def calculate_fidelity(
 def calculate_expressivity(
     circs: list[ParametrizedQuantumCircuit] | ParametrizedQuantumCircuit, config: ProxyConfig
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-    tqdm_depth = 1
     from quantum_circuit import ParametrizedQuantumCircuit
 
     if isinstance(circs, ParametrizedQuantumCircuit):
@@ -79,23 +78,15 @@ def calculate_expressivity(
     bins: np.ndarray[tuple[int], np.dtype[np.float64]] = np.linspace(0.0, 1.0, bin_count + 1)
 
     haar_power = (1 << qubits) - 1
-    lower_edges: np.ndarray[tuple[int], np.dtype[np.float64]] = -1.0 * np.power(
-        1.0 - bins[:-1], haar_power
-    )
-    higher_edges: np.ndarray[tuple[int], np.dtype[np.float64]] = -1.0 * np.power(
-        1.0 - bins[1:], haar_power
-    )
+    lower_edges: np.ndarray[tuple[int], np.dtype[np.float64]] = -1.0 * np.power(1.0 - bins[:-1], haar_power)
+    higher_edges: np.ndarray[tuple[int], np.dtype[np.float64]] = -1.0 * np.power(1.0 - bins[1:], haar_power)
     haar_values: np.ndarray[tuple[int], np.dtype[np.float64]] = higher_edges - lower_edges
 
     backend = AerSimulator(method="statevector")
 
     fidelities = np.zeros((len(circs), config.expressivity_samples))
     for idx, circuit in tqdm(
-        enumerate(circs),
-        total=len(circs),
-        position=tqdm_depth,
-        desc="Computing Fidelities",
-        leave=False,
+        enumerate(circs), total=len(circs), position=config.tqdm_depth, desc="Computing Fidelities", leave=False
     ):
         if not force_recalculate and circs[idx]._expressivity is not None:
             continue
@@ -105,7 +96,7 @@ def calculate_expressivity(
     for idx, fid in tqdm(
         enumerate(fidelities),
         total=len(circs),
-        position=tqdm_depth,
+        position=config.tqdm_depth,
         desc="Computing Expressibility",
         leave=False,
     ):
