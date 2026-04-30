@@ -53,6 +53,7 @@ def exact_ground_energy(hamiltonian: np.ndarray[tuple[int, int], np.dtype[np.flo
     return float(w[0])
 
 
+tfim_hamiltonian_energies: dict[tuple[int, bool], float] = {}
 
 
 def make_problem_function(
@@ -66,7 +67,7 @@ def make_problem_function(
     rng = np.random.default_rng(seed)
 
     hamiltonian = tfim_hamiltonian(qubits, periodic)
-    true_energy = exact_ground_energy(hamiltonian)
+    true_energy = tfim_hamiltonian_energies.setdefault((qubits, periodic), exact_ground_energy(hamiltonian))
 
     def tfim_problem(circ: ParametrizedQuantumCircuit, tpos_offset: int) -> tuple[bool, float]:
 
