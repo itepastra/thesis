@@ -157,12 +157,12 @@ def evaluate(
     os.makedirs(savepath, exist_ok=True)
 
     eval_functions = {
-        EXPRESSIVITY: lambda f, circs, offset: expressivity(f, circs, offset),
-        PATHS: lambda f, circs, offset: paths(f, circs, offset),
+        EXPRESSIVITY: expressivity,
+        PATHS: paths,
         TFIM: lambda f, circs, offset: tfim(f, circs, True, offset),
         TFIM_NON_PERIOD: lambda f, circs, offset: tfim(f, circs, False, offset),
-        BASICS: lambda f, circs, offset: basics(f, circs, offset),
-        PRINTED: lambda f, circs, offset: printed_circuits(f, circs, offset),
+        BASICS: basics,
+        PRINTED: printed_circuits,
     }
 
     extensions = {EXPRESSIVITY: "csv", PATHS: "csv", TFIM: "csv", TFIM_NON_PERIOD: "csv", BASICS: "csv", PRINTED: "txt"}
