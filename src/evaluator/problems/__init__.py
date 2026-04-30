@@ -80,7 +80,7 @@ def benchmark_qas(
 def optimize_circuit_adam(
     circ: ParametrizedQuantumCircuit, vec_value_and_grad, batch_size: int = 1000, max_iter: int = 10000, tpos: int = 1
 ):
-    param = tf.Variable(initial_value=tf.random.uniform(shape=[batch_size, circ.parameters]) * math.tau - math.pi)
+    param = tf.Variable(initial_value=tf.random.uniform(shape=[batch_size, circ.parameters]) * 2 * math.tau - math.tau)
     opt = tf.keras.optimizers.Adam(1e-2)
     bar = tqdm(range(max_iter), desc=f"Step (compiling)", leave=False, position=tpos, colour="green")
     e_last = np.full((batch_size,), np.inf)

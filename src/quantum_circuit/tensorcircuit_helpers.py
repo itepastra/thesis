@@ -45,11 +45,11 @@ def build_tensor_circuit_factory(
                     gate.qubits[0], gate.qubits[1], theta=paramc[current_param_index]  # ty:ignore[index-out-of-bounds]
                 )
             elif gate.type == QuantumType.XX:
-                tcirc.rxx(gate.qubits[0], gate.qubits[1], theta=np.pi)  # ty:ignore[index-out-of-bounds]
+                tcirc.rxx(gate.qubits[0], gate.qubits[1], theta=np.pi / 2.0)  # ty:ignore[index-out-of-bounds]
             elif gate.type == QuantumType.YY:
-                tcirc.ryy(gate.qubits[0], gate.qubits[1], theta=np.pi)  # ty:ignore[index-out-of-bounds]
+                tcirc.ryy(gate.qubits[0], gate.qubits[1], theta=np.pi / 2.0)  # ty:ignore[index-out-of-bounds]
             elif gate.type == QuantumType.ZZ:
-                tcirc.rzz(gate.qubits[0], gate.qubits[1], theta=np.pi)  # ty:ignore[index-out-of-bounds]
+                tcirc.rzz(gate.qubits[0], gate.qubits[1], theta=np.pi / 2.0)  # ty:ignore[index-out-of-bounds]
             elif gate.type == QuantumType.CRX:
                 tcirc.crx(
                     gate.qubits[0], gate.qubits[1], theta=paramc[current_param_index]  # ty:ignore[index-out-of-bounds]

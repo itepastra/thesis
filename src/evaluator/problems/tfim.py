@@ -1,3 +1,4 @@
+import sys
 from collections.abc import Callable
 
 import jax
@@ -15,24 +16,28 @@ from . import optimize_circuit_adam
 
 tc.set_backend("tensorflow")
 
-dt = np.dtype(np.float64)
+dt = np.complex128
 tau = np.pi * 2
 
 
-def _pauli_x() -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+def _pauli_x() -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     return np.array([[0.0, 1.0], [1.0, 0.0]], dtype=dt)
 
 
-def _pauli_z() -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+def _pauli_y() -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+    return np.array([[0.0, -1.0j], [1.0j, 0.0]], dtype=dt)
+
+
+def _pauli_z() -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     return np.array([[1.0, 0.0], [0.0, -1.0]], dtype=dt)
 
 
-def _ident() -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+def _ident() -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     return np.eye(2, dtype=dt)
 
 
 def kronecker_product(
-    gates: list[np.ndarray[tuple[int, int], np.dtype[np.float64]]],
+    gates: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
     out: np.ndarray[tuple[int, int], np.dtype[np.float64]] = np.array([[1.0]], dtype=dt)
     for op in gates:
@@ -41,11 +46,32 @@ def kronecker_product(
 
 
 def tfim_hamiltonian(n: int, periodic: bool = True):
-    hamiltonian2 = tc.quantum.heisenberg_hamiltonian(
-        tc.templates.graphs.Line1D(n, pbc=periodic), hzz=1, hxx=1, hyy=1, hx=0, hy=0, hz=1, sparse=False
-    ).numpy()
+    X = _pauli_x()
+    Y = _pauli_y()
+    Z = _pauli_z()
+    I = _ident()
+    dimension = 1 << n
+    hamiltonian = np.zeros((dimension, dimension), dtype=dt)
 
-    return hamiltonian2
+    for i in range(n):
+        operations = [I] * n
+        operations[i] = Z
+        hamiltonian += kronecker_product(operations)
+
+        j = (i + 1) % n
+        if (not periodic) and (j == 0):
+            continue
+        operations[i] = X
+        operations[j] = X
+        hamiltonian += kronecker_product(operations)
+        operations[i] = Y
+        operations[j] = Y
+        hamiltonian += kronecker_product(operations)
+        operations[i] = Z
+        operations[j] = Z
+        hamiltonian += kronecker_product(operations)
+
+    return hamiltonian
 
 
 def exact_ground_energy(hamiltonian: np.ndarray[tuple[int, int], np.dtype[np.float64]]) -> float:
