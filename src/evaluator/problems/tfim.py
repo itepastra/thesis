@@ -41,30 +41,18 @@ def kronecker_product(
 
 
 def tfim_hamiltonian(n: int, periodic: bool = True):
-    X = _pauli_x()
-    Z = _pauli_z()
-    I = _ident()
-    dimension = 1 << n
-    hamiltonian = np.zeros((dimension, dimension), dtype=dt)
+    hamiltonian2 = tc.quantum.heisenberg_hamiltonian(
+        tc.templates.graphs.Line1D(n, pbc=periodic), hzz=1, hxx=1, hyy=1, hx=0, hy=0, hz=1, sparse=False
+    ).numpy()
 
-    for i in range(n):
-        operations = [I] * n
-        operations[i] = X
-        hamiltonian += kronecker_product(operations)
-
-        j = (i + 1) % n
-        if (not periodic) and (j == 0):
-            continue
-        operations[i] = Z
-        operations[j] = Z
-        hamiltonian += kronecker_product(operations)
-
-    return hamiltonian
+    return hamiltonian2
 
 
-def exact_ground_energy(H: np.ndarray[tuple[int, int], np.dtype[np.float64]]) -> float:
-    w = np.linalg.eigvalsh(H)
+def exact_ground_energy(hamiltonian: np.ndarray[tuple[int, int], np.dtype[np.float64]]) -> float:
+    w = np.linalg.eigvalsh(hamiltonian)
     return float(w[0])
+
+
 
 
 def make_problem_function(
