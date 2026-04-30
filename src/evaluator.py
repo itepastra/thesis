@@ -52,7 +52,7 @@ def expressivity(file: Path, circuits: list[ParametrizedQuantumCircuit], offset:
             desc=EXPRESSIVITY,
             colour="cyan",
         ):
-            f.write(f"{i+offset},{circ.expressivity(ProxyConfig(circ.qubits))}\n")
+            f.write(f"{i+offset},{circ.expressivity(ProxyConfig(circ.qubits, tqdm_depth=EVAL_TARGET_TPOS+1))}\n")
 
 
 def paths(file: Path, circuits: list[ParametrizedQuantumCircuit], offset: int = 0):
