@@ -72,8 +72,11 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument("--strategy", type=str, default="qd", help="Search strategy", choices=["ga", "qd", "tf"])
-    parser.add_argument("--qubits", type=int, default=4, help="How many qubits to search a PQC for")
-    parser.add_argument("--depth", type=int, default=12, help="How many qubits to search a PQC for")
+    parser.add_argument("--qubits", type=int, default=5, help="How many qubits to search a PQC for")
+    parser.add_argument("--depth", type=int, default=15, help="How many layers the PQC can have at most")
+    parser.add_argument(
+        "--params", type=int, default=35, help="How many parameters the PQC can have at most (might be a bit more)"
+    )
     parser.add_argument("--extra", type=str, default="", help="Note about the settings for filename")
     args = parser.parse_args()
 

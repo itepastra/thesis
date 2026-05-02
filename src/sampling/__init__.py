@@ -8,6 +8,7 @@ from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
 def sample_by_layers(
     qubits: int,
     circuit_depth: int,
+    max_params: int,
     gate_types: list[QuantumType],
     random: Random,
     collapse_non_overlapping: bool = True,
@@ -23,8 +24,9 @@ def sample_by_layers(
     pqc = ParametrizedQuantumCircuit(qubits)
 
     even_qubits = qubits % 2 == 0
+    parameters = 0
 
-    while len(pqc.gates) < circuit_depth:
+    while len(pqc.gates) < circuit_depth and parameters < max_params:
         even_parity = random.random() < 0.5
         gate_type: QuantumType = random.choice(gate_types)
         if gate_type.is_single_qubit():
@@ -42,13 +44,15 @@ def sample_by_layers(
 
 
 def sample_by_gates(
-    qubits: int, circuit_depth: int, gate_types: list[QuantumType], random: Random
+    qubits: int, circuit_depth: int, max_params: int, gate_types: list[QuantumType], random: Random
 ) -> ParametrizedQuantumCircuit:
     pqc = ParametrizedQuantumCircuit(qubits)
+    parameters = 0
 
-    while len(pqc.gates) < circuit_depth:
+    while len(pqc.gates) < circuit_depth and parameters < max_params:
         pos = random.randrange(0, qubits)
         gate_type = random.choice(gate_types)
+        parameters += gate_type.is_parameterized()
         if gate_type.is_single_qubit():
             pqc.append_gate(QuantumGate(gate_type, (pos,)))
         else:

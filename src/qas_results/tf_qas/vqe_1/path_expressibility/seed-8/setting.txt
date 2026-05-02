@@ -1,0 +1,25 @@
+------------------ start ------------------
+qubit : 6
+layer : 10
+gate_num : 36
+gate_type : ['H', 'Rx', 'Ry', 'Rz', 'XX', 'YY', 'ZZ']
+num_of_single_qubit_gate : 4
+no_parameter_gate_index : [0]
+preference_for_single : 0
+g_or_l : 1
+start_with_h : True
+Hamiltonian : {'pbc': True, 'hzz': 1, 'hxx': 0, 'hyy': 0, 'hx': 1, 'hy': 0, 'hz': 0, 'sparse': False}
+theoretical : -7.727407
+max_two_qubit_rate : 0.5
+-------------------------------------------
+seed : 8
+task : vqe_1
+total_num : 50000
+search_method : path_expressibility
+path_save : 5000
+search_budget : -1
+run : 20
+iteration : 10000
+parallel : 1
+num_random_initial : 4000
+------------------- end -------------------

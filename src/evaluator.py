@@ -151,7 +151,7 @@ def evaluate(
     savepath: Path,
     skip_existing: bool,
     parts_to_do: set[str],
-    chunk_size: int = 16,
+    chunk_size: int = 4,
 ):
     print(f"setting up save folder at {savepath}")
     os.makedirs(savepath, exist_ok=True)

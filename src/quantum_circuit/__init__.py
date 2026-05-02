@@ -32,7 +32,7 @@ class QuantumType(enum.Enum):
     CRX = enum.auto()
     CZ = enum.auto()
 
-    def is_single_qubit(self):
+    def is_single_qubit(self) -> bool:
         return self in {
             QuantumType.Identity,
             QuantumType.Hadamard,
@@ -44,7 +44,7 @@ class QuantumType(enum.Enum):
             QuantumType.RZ,
         }
 
-    def is_parameterized(self):
+    def is_parameterized(self) -> bool:
         return self in {
             QuantumType.RX,
             QuantumType.RXX,

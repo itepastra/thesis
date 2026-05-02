@@ -87,7 +87,7 @@ def optimize_circuit_adam(
     for i in bar:
         e, grad = vec_value_and_grad(param)
         opt.apply_gradients([(grad, param)])
-        bar.desc = f"Step (current energy {np.min(e):.4f})"
+        bar.desc = f"Step (current energy {np.min(e):.5f})"
         if i % 100 == 0:  # check if converged
             distance = np.abs(e_last - e.numpy())
             if distance.max() < 0.0001:
