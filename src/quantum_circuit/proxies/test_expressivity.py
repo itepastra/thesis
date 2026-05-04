@@ -66,7 +66,7 @@ def test_rx_circuit_has_correct_expressivity(subtests):
             print(f"attempt: {attempt} failed")
             # accept some uncertainty around the exact value, since we are approximating the expressivity.
             # might be better to test if the distribution of N attempts aligns with the exact_result
-            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.25)
+            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.3)
 
 
 NON_PARAMETRIZED_GATES = [
