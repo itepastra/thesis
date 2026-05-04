@@ -27,7 +27,7 @@ def test_identity_circuit_has_correct_expressivity(subtests):
 def test_rz_circuit_has_correct_expressivity(subtests):
     qubits = 1
     proxy_config = ProxyConfig(
-        qubits, expressivity_bins=75, expressivity_samples=1000, force_recalculate=True, random=Random(1337)
+        qubits, expressivity_bins=75, expressivity_samples=5000, force_recalculate=True, random=Random(1337)
     )
     circ = ParametrizedQuantumCircuit(qubits)
     circ.append_gate(QuantumGate(QuantumType.RZ, (0,)))
@@ -70,7 +70,7 @@ def test_rx_circuit_has_correct_expressivity(subtests):
             print(f"attempt: {attempt} failed")
             # accept some uncertainty around the exact value, since we are approximating the expressivity.
             # might be better to test if the distribution of N attempts aligns with the exact_result
-            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.3)
+            assert circ.expressivity(proxy_config) == pytest.approx(exact_result)
 
 
 def test_simple_chain_circuit_has_correct_expressivity(subtests):
@@ -89,7 +89,7 @@ def test_simple_chain_circuit_has_correct_expressivity(subtests):
 
     for attempt in range(SAMPLES_COUNT):
         with subtests.test(attempt):
-            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.25)
+            assert circ.expressivity(proxy_config) == pytest.approx(exact_result)
 
 
 NON_PARAMETRIZED_GATES = [
