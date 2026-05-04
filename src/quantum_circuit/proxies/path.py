@@ -13,7 +13,6 @@ from tqdm import tqdm
 
 if TYPE_CHECKING:
     from quantum_circuit import ParametrizedQuantumCircuit
-    from quantum_circuit.proxy_config import ProxyConfig
 
 
 def make_dag(circ: ParametrizedQuantumCircuit) -> list[list[int]]:

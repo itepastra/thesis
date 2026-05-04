@@ -18,7 +18,7 @@ def test_identity_circuit_has_correct_expressivity(subtests):
             circ = ParametrizedQuantumCircuit(qubits)
             circ.append_layer([QuantumGate(QuantumType.Identity, (qb,)) for qb in range(qubits)], True)
 
-            proxy_config = ProxyConfig(qubits, expressivity_bins=75)
+            proxy_config = ProxyConfig(qubits, expressivity_bins=75, random=Random(1337))
             target_expressivity = ((2**qubits) - 1) * math.log(proxy_config.expressivity_bins)
 
             assert circ.expressivity(proxy_config) == pytest.approx(target_expressivity)
@@ -26,7 +26,9 @@ def test_identity_circuit_has_correct_expressivity(subtests):
 
 def test_rz_circuit_has_correct_expressivity(subtests):
     qubits = 1
-    proxy_config = ProxyConfig(qubits, expressivity_bins=75, expressivity_samples=1000, force_recalculate=True)
+    proxy_config = ProxyConfig(
+        qubits, expressivity_bins=75, expressivity_samples=1000, force_recalculate=True, random=Random(1337)
+    )
     circ = ParametrizedQuantumCircuit(qubits)
     circ.append_gate(QuantumGate(QuantumType.RZ, (0,)))
 
@@ -43,7 +45,9 @@ def test_rz_circuit_has_correct_expressivity(subtests):
 
 def test_rx_circuit_has_correct_expressivity(subtests):
     qubits = 1
-    proxy_config = ProxyConfig(qubits, expressivity_bins=75, expressivity_samples=1000, force_recalculate=True)
+    proxy_config = ProxyConfig(
+        qubits, expressivity_bins=75, expressivity_samples=5000, force_recalculate=True, random=Random(1337)
+    )
 
     haar_power = 2**1 - 1
     bins: np.ndarray[tuple[int], np.dtype[np.float64]] = np.linspace(0.0, 1.0, proxy_config.expressivity_bins + 1)
@@ -69,6 +73,25 @@ def test_rx_circuit_has_correct_expressivity(subtests):
             assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.3)
 
 
+def test_simple_chain_circuit_has_correct_expressivity(subtests):
+    qubits = 1
+    # increase the sample count to make the approximation closer
+    proxy_config = ProxyConfig(
+        qubits, expressivity_bins=75, expressivity_samples=5000, force_recalculate=True, random=Random(1337)
+    )
+
+    exact_result = 0.011116
+
+    circ = ParametrizedQuantumCircuit(qubits)
+    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(QuantumType.RZ, (0,)))
+    circ.append_gate(QuantumGate(QuantumType.RX, (0,)))
+
+    for attempt in range(SAMPLES_COUNT):
+        with subtests.test(attempt):
+            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.25)
+
+
 NON_PARAMETRIZED_GATES = [
     QuantumType.Identity,
     QuantumType.Hadamard,
@@ -91,7 +114,7 @@ def test_non_parameterized_circuits_have_correct_expressivity(subtests):
             with subtests.test(f"qubits: {qubits}, sample {sample}"):
                 circ = sample_by_gates(qubits, 15, 900, NON_PARAMETRIZED_GATES, random)
 
-                proxy_config = ProxyConfig(qubits, expressivity_bins=75)
+                proxy_config = ProxyConfig(qubits, expressivity_bins=75, random=random)
                 target_expressivity = ((2**qubits) - 1) * math.log(proxy_config.expressivity_bins)
 
                 assert circ.expressivity(proxy_config) == pytest.approx(target_expressivity)

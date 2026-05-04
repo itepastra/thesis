@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from random import Random
 
 
 @dataclass(frozen=True)
@@ -10,6 +11,7 @@ class ProxyConfig:
 
     qubits: int
     force_recalculate: bool = False
+    random: Random = Random()
 
     entanglement_samples: int = 1000
 

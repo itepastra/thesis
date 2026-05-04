@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def single_circuit_param_fidelity(
-    circ: ParametrizedQuantumCircuit, samples: int, backend: AerBackend
+    circ: ParametrizedQuantumCircuit, samples: int, backend: AerBackend, seed: int
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
     """
     Calculates the result of <qc_params1|qc_params2> `samples` times.
@@ -34,7 +34,8 @@ def single_circuit_param_fidelity(
 
     number_of_initial_circuits = 2 * samples
 
-    params: NDArray[np.float64] = np.random.uniform(-np.pi, np.pi, (len(thetas), number_of_initial_circuits))
+    rng = np.random.default_rng(seed)
+    params: NDArray[np.float64] = rng.uniform(-np.pi, np.pi, (len(thetas), number_of_initial_circuits))
 
     binds = [{param: params[idx] for idx, param in enumerate(thetas.params)}]
 
@@ -74,6 +75,7 @@ def calculate_expressivity(
     samples = config.expressivity_samples
     bin_count = config.expressivity_bins
     force_recalculate = config.force_recalculate
+    random = config.random
     bins: np.ndarray[tuple[int], np.dtype[np.float64]] = np.linspace(0.0, 1.0, bin_count + 1)
 
     haar_power = (1 << qubits) - 1
@@ -86,13 +88,14 @@ def calculate_expressivity(
 
     backend = AerSimulator(method="statevector")
 
+    random_seeds = [random.randrange(0, 100000000) for _ in circs]
     fidelities = np.zeros((len(circs), config.expressivity_samples))
     for idx, circuit in tqdm(
         enumerate(circs), total=len(circs), position=config.tqdm_depth, desc="Computing Fidelities", leave=False
     ):
         if not force_recalculate and circs[idx]._expressivity is not None:
             continue
-        fidelities[idx] = single_circuit_param_fidelity(circuit, samples, backend)
+        fidelities[idx] = single_circuit_param_fidelity(circuit, samples, backend, random_seeds[idx])
 
     expressivity = np.zeros((len(circs)))
     for idx, fid in tqdm(
