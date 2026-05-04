@@ -9,7 +9,7 @@ def test_layerwise_sampling_has_gates_each_layer_without_collapse(subtests):
     random = Random(1234)
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
-            circuit = sample_by_layers(5, 15, ALL_GATE_TYPES, random, False)
+            circuit = sample_by_layers(5, 15, 35, ALL_GATE_TYPES, random, False)
             for layer in circuit.gates:
                 assert len(layer) > 0
 
@@ -18,7 +18,7 @@ def test_layerwise_sampling_has_gates_each_layer_with_collapse(subtests):
     random = Random(1234)
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
-            circuit = sample_by_layers(5, 15, ALL_GATE_TYPES, random, True)
+            circuit = sample_by_layers(5, 15, 35, ALL_GATE_TYPES, random, True)
             for layer in circuit.gates:
                 assert len(layer) > 0
 
@@ -28,7 +28,7 @@ def test_layerwise_sampling_has_correct_depth_without_collapse(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             target_depth = random.randrange(10, 30)
-            circuit = sample_by_layers(5, target_depth, ALL_GATE_TYPES, random, False)
+            circuit = sample_by_layers(5, target_depth, 900, ALL_GATE_TYPES, random, False)
             assert len(circuit.gates) == target_depth
 
 
@@ -37,7 +37,7 @@ def test_layerwise_sampling_has_correct_depth_with_collapse(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             target_depth = random.randrange(10, 30)
-            circuit = sample_by_layers(5, target_depth, ALL_GATE_TYPES, random, True)
+            circuit = sample_by_layers(5, target_depth, 900, ALL_GATE_TYPES, random, True)
             assert len(circuit.gates) == target_depth
 
 
@@ -46,7 +46,7 @@ def test_layerwise_sampling_has_no_overlapping_gates(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             qubits = random.randrange(3, 10)
-            circuit = sample_by_layers(qubits, 15, ALL_GATE_TYPES, random, True)
+            circuit = sample_by_layers(qubits, 15, 900, ALL_GATE_TYPES, random, True)
 
             print(qubits)
             print(circuit.circ[0])
@@ -66,7 +66,7 @@ def test_layerwise_sampling_does_fill_as_much_as_possible(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             qubits = random.randrange(3, 10)
-            circuit = sample_by_layers(qubits, 15, ALL_GATE_TYPES, random, True)
+            circuit = sample_by_layers(qubits, 15, 900, ALL_GATE_TYPES, random, True)
 
             print(qubits)
             print(circuit.circ[0])
@@ -85,8 +85,7 @@ def test_layerwise_sampling_does_fill_as_much_as_possible(subtests):
                     free_count <= (1 if odd_qubits else 0)
                     # the layer is filled except for maybe two (in case of even qubits, one for odd)
                     or (
-                        free_count
-                        == qubits // 2  # the layer is half filled (even with odd total qubits)
+                        free_count == qubits // 2  # the layer is half filled (even with odd total qubits)
                         or free_count == qubits // 2 + 1
                         if odd_qubits
                         else free_count == qubits // 2
@@ -99,7 +98,7 @@ def test_layerwise_sampling_has_only_allowed_qubits(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             qubits = random.randrange(3, 10)
-            circuit = sample_by_layers(qubits, 15, ALL_GATE_TYPES, random)
+            circuit = sample_by_layers(qubits, 15, 900, ALL_GATE_TYPES, random)
 
             print(qubits)
             print(circuit.circ[0])
@@ -115,7 +114,7 @@ def test_gatewise_sampling_has_gates_each_layer(subtests):
     random = Random(1234)
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
-            circuit = sample_by_gates(5, 15, ALL_GATE_TYPES, random)
+            circuit = sample_by_gates(5, 15, 900, ALL_GATE_TYPES, random)
             for layer in circuit.gates:
                 assert len(layer) > 0
 
@@ -125,7 +124,7 @@ def test_gatewise_sampling_has_correct_depth(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             target_depth = random.randint(10, 30)
-            circuit = sample_by_gates(5, target_depth, ALL_GATE_TYPES, random)
+            circuit = sample_by_gates(5, target_depth, 900, ALL_GATE_TYPES, random)
             assert len(circuit.gates) == target_depth
 
 
@@ -134,7 +133,7 @@ def test_gatewise_sampling_has_no_overlapping_gates(subtests):
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             qubits = random.randrange(3, 10)
-            circuit = sample_by_gates(qubits, 15, ALL_GATE_TYPES, random)
+            circuit = sample_by_gates(qubits, 15, 900, ALL_GATE_TYPES, random)
 
             print(qubits)
             print(circuit.circ[0])
@@ -149,12 +148,23 @@ def test_gatewise_sampling_has_no_overlapping_gates(subtests):
                     seen.add(gate.qubits[0])
 
 
+def test_gatewise_sampling_does_not_add_two_qubit_gates_on_one_qubit_circuits(subtests):
+    random = Random(1234)
+    for samples in range(SAMPLES_COUNT):
+        with subtests.test(i=samples):
+            circuit = sample_by_gates(1, 15, 900, ALL_GATE_TYPES, random)
+
+            for layer in circuit.gates:
+                for gate in layer:
+                    assert gate.type.is_single_qubit()
+
+
 def test_gatewise_sampling_has_only_allowed_qubits(subtests):
     random = Random(1234)
     for samples in range(SAMPLES_COUNT):
         with subtests.test(i=samples):
             qubits = random.randrange(3, 10)
-            circuit = sample_by_gates(qubits, 15, ALL_GATE_TYPES, random)
+            circuit = sample_by_gates(qubits, 15, 900, ALL_GATE_TYPES, random)
 
             print(qubits)
             print(circuit.circ[0])

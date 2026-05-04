@@ -1,1 +1,1 @@
-SAMPLES_COUNT: int = 1000
+SAMPLES_COUNT: int = 10

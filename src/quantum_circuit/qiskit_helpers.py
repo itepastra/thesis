@@ -66,10 +66,12 @@ def build_qiskit_circ(pqc: "ParametrizedQuantumCircuit") -> tuple[QuantumCircuit
         for gate in layer:
             try:
                 current_theta_index += add_qubit_gate(circ, gate, thetas, current_theta_index)
-            except:
+            except Exception as e:
+                print(e)
                 print(
                     f"tried adding {gate} to \n\n{circ}\n\nWith theta index {current_theta_index} (len is {len(thetas)}, the pqc had gates \n{'\n'.join(str(x) for x in pqc.gates)}"
                 )
                 raise Exception
 
+    circ.save_statevector()
     return circ, thetas

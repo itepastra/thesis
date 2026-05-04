@@ -50,6 +50,9 @@ def sample_by_gates(
     pqc = ParametrizedQuantumCircuit(qubits)
     parameters = 0
 
+    if qubits <= 1:  # can't have two-qubit gates
+        gate_types = [ty for ty in gate_types if ty.is_single_qubit()]
+
     while len(pqc.gates) < circuit_depth and parameters < max_params:
         pos = random.randrange(0, qubits)
         gate_type = random.choice(gate_types)

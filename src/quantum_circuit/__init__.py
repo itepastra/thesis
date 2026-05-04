@@ -217,7 +217,7 @@ class ParametrizedQuantumCircuit:
         """
         Expressivity of the circuit, following the definition from {THE PAPER}
         """  # TODO: Link Paper
-        if self._expressivity is None:
+        if self._expressivity is None or config.force_recalculate:
             self._expressivity = float(calculate_expressivity(self, config)[0])
         return self._expressivity
 
@@ -225,7 +225,7 @@ class ParametrizedQuantumCircuit:
         """
         Entanglement of the circuit, following the definition from {THE PAPER}
         """  # TODO: Link Paper
-        if self._entanglement is None:
+        if self._entanglement is None or config.force_recalculate:
             self._entanglement = float(calculate_entanglement(self, config)[0])
 
         return self._entanglement
@@ -234,7 +234,7 @@ class ParametrizedQuantumCircuit:
         """
         Approximated fidelity of the circuit
         """
-        if self._fidelity is None:
+        if self._fidelity is None or config.force_recalculate:
             self._fidelity = float(calculate_fidelity(self, config)[0])
 
         return self._fidelity

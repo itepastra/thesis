@@ -24,8 +24,11 @@ def single_circuit_param_fidelity(
     Calculates the result of <qc_params1|qc_params2> `samples` times.
     then returns the absolute squared value |<qc_params1|qc_params2>|^2
     """
+
     qc, thetas = circ.circ
-    qc.save_statevector()
+    if len(thetas) == 0:
+        print(f"circuit without parameters\n{circ}\nwill always have fidelity 1.0 (without noise)")
+        return np.full(samples, 1.0)
 
     tqc = transpile(qc, backend)
 
@@ -34,10 +37,6 @@ def single_circuit_param_fidelity(
     params: NDArray[np.float64] = np.random.uniform(-np.pi, np.pi, (len(thetas), number_of_initial_circuits))
 
     binds = [{param: params[idx] for idx, param in enumerate(thetas.params)}]
-
-    if len(binds[0]) == 0:
-        print(f"circuit without parameters\n{circ}, setting expressivity to infinity")
-        return np.array([np.inf])
 
     job = backend.run([tqc], parameter_binds=binds)
     result = job.result()
@@ -78,9 +77,12 @@ def calculate_expressivity(
     bins: np.ndarray[tuple[int], np.dtype[np.float64]] = np.linspace(0.0, 1.0, bin_count + 1)
 
     haar_power = (1 << qubits) - 1
-    lower_edges: np.ndarray[tuple[int], np.dtype[np.float64]] = -1.0 * np.power(1.0 - bins[:-1], haar_power)
-    higher_edges: np.ndarray[tuple[int], np.dtype[np.float64]] = -1.0 * np.power(1.0 - bins[1:], haar_power)
-    haar_values: np.ndarray[tuple[int], np.dtype[np.float64]] = higher_edges - lower_edges
+
+    with np.errstate(divide="ignore"):
+        lower = haar_power * np.log1p(-bins[:-1])
+        upper = haar_power * np.log1p(-bins[1:])
+
+    haar_values: np.ndarray[tuple[int], np.dtype[np.float64]] = lower + np.log1p(-np.exp(upper - lower))
 
     backend = AerSimulator(method="statevector")
 
@@ -102,10 +104,14 @@ def calculate_expressivity(
     ):
         if not force_recalculate and circs[idx]._expressivity is not None:
             continue
-        bin_idx = np.floor(fid * bin_count).astype(int)
+        bin_idx = np.minimum(np.floor(fid * bin_count).astype(int), bin_count - 1)
         num = np.array([len(bin_idx[bin_idx == i]) for i in range(bin_count)])
 
-        expressivity[idx] = -stats.entropy(num, haar_values)
+        num_sum = np.sum(num)
+        num_normalized = num / num_sum
+
+        mask = num_normalized > 0
+        expressivity[idx] = np.sum(num_normalized[mask] * (np.log(num_normalized[mask]) - haar_values[mask]))
         # NOTE: I'm setting the expressivity here directly, for caching
         circs[idx]._expressivity = float(expressivity[idx])
 

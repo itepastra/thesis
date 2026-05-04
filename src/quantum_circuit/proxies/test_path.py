@@ -129,7 +129,7 @@ def test_path_proxy_does_not_depend_on_single_qubit_gates(subtests):
     for i in range(SAMPLES_COUNT):
         with subtests.test(i=i):
             qubits = random.randrange(1, 11)
-            circs = [sample_by_layers(qubits, 10, gateset, random, True)]
+            circs = [sample_by_layers(qubits, 10, 900, gateset, random, True)]
             path_counts = paths_proxy(circs)
             assert path_counts[0] == qubits
 
@@ -140,8 +140,6 @@ def test_path_proxy_returns_same_length_as_inputs(subtests):
         with subtests.test(i=i):
             count = random.randrange(1, 100)
             qubits = random.randrange(1, 11)
-            circs = [
-                sample_by_layers(qubits, 10, ALL_GATE_TYPES, random, True) for _ in range(count)
-            ]
+            circs = [sample_by_layers(qubits, 10, 900, ALL_GATE_TYPES, random, True) for _ in range(count)]
             path_counts = paths_proxy(circs)
             assert len(path_counts) == len(circs)
