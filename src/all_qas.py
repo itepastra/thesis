@@ -86,10 +86,10 @@ if __name__ == "__main__":
     gate_set = [QuantumType.RX, QuantumType.RY, QuantumType.RZ, QuantumType.RXX, QuantumType.RYY, QuantumType.RZZ]
 
     def gate_sampling(random: Random):
-        return sampling.sample_by_gates(args.qubits, args.depth, gate_set, random)
+        return sampling.sample_by_gates(args.qubits, args.depth, args.params, gate_set, random)
 
     def layer_sampling(random: Random):
-        return sampling.sample_by_layers(args.qubits, args.depth, gate_set, random, True)
+        return sampling.sample_by_layers(args.qubits, args.depth, args.params, gate_set, random, True)
 
     match strat:
         case SearchStrategy.TFQAS:

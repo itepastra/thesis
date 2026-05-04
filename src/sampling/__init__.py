@@ -37,6 +37,7 @@ def sample_by_layers(
                 (i, (i + 1) % qubits) if direction else ((i + 1) % qubits, i)
                 for i in range(0 if even_parity else 1, (qubits if even_qubits else qubits - 1), 2)
             ]
+        parameters += len(positions) * gate_type.is_parameterized()
 
         pqc.append_layer([QuantumGate(gate_type, pos) for pos in positions], collapse_non_overlapping)
 
