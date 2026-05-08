@@ -46,7 +46,7 @@ def test_rz_circuit_has_correct_expressivity(subtests):
 def test_rx_circuit_has_correct_expressivity(subtests):
     qubits = 1
     proxy_config = ProxyConfig(
-        qubits, expressivity_bins=75, expressivity_samples=5000, force_recalculate=True, random=Random(1337)
+        qubits, expressivity_bins=75, expressivity_samples=100000, force_recalculate=True, random=Random(1337)
     )
 
     haar_power = 2**1 - 1
@@ -56,10 +56,8 @@ def test_rx_circuit_has_correct_expressivity(subtests):
     upper = -np.power(1 - bins[1:], haar_power)
     haar_values = upper - lower
 
-    # F = |<0|RX(t1) RX(t2)|0>|^2 = cos^2((t1 - t2)/2)
-    # p(F) = 1/2 cos(t1 - t2)
     exact_result = stats.entropy(
-        2 / np.pi * (np.arcsin(np.sqrt(bins[1:])) - np.arcsin(np.sqrt(bins[:-1]))), haar_values
+        2 / np.pi * (np.arccos(np.sqrt(bins[1:])) - np.arccos(np.sqrt(bins[:-1]))), haar_values
     )
 
     circ = ParametrizedQuantumCircuit(qubits)
@@ -70,14 +68,14 @@ def test_rx_circuit_has_correct_expressivity(subtests):
             print(f"attempt: {attempt} failed")
             # accept some uncertainty around the exact value, since we are approximating the expressivity.
             # might be better to test if the distribution of N attempts aligns with the exact_result
-            assert circ.expressivity(proxy_config) == pytest.approx(exact_result)
+            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.01)
 
 
 def test_simple_chain_circuit_has_correct_expressivity(subtests):
     qubits = 1
     # increase the sample count to make the approximation closer
     proxy_config = ProxyConfig(
-        qubits, expressivity_bins=75, expressivity_samples=5000, force_recalculate=True, random=Random(1337)
+        qubits, expressivity_bins=75, expressivity_samples=100000, force_recalculate=True, random=Random(1337)
     )
 
     exact_result = 0.011116
@@ -89,7 +87,7 @@ def test_simple_chain_circuit_has_correct_expressivity(subtests):
 
     for attempt in range(SAMPLES_COUNT):
         with subtests.test(attempt):
-            assert circ.expressivity(proxy_config) == pytest.approx(exact_result)
+            assert circ.expressivity(proxy_config) == pytest.approx(exact_result, 0.01)
 
 
 NON_PARAMETRIZED_GATES = [

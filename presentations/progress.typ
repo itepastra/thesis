@@ -56,18 +56,6 @@
 
 #let today-offset = (datetime.today() - datetime(day: 10, month: 11, year: 2025)).weeks()
 
-= Week 24
-
-Evaluator
-
-== Content
-
-- Status Overview
-- Evaluator explained
-- TF-QAS runs
-
-== Status
-
 #let rect-around(name) = cetz.draw.rect(name+".south-west", name+".north-east", radius: 0.4, name: name+"-rect");
 #let group-pad = 0.4
 
@@ -108,63 +96,120 @@ Evaluator
   name + ".south-east",
   name: name + "-rect"
 )
-#slide[
-  #align(center + horizon)[
-  #cetz-canvas(length: 0.8cm, {
-    import cetz.draw: *
 
-    content((0.0, 0.0), "Layerwise Sampling", name: "layerwise", padding: 0.5)
-    rect-around("layerwise")
+#let project-layout = [
+  == Overview
 
-    content((10.0, 0.0), "Gatewise Sampling", name: "gatewise", padding: 0.5)
-    rect-around("gatewise")
+  #slide[
+    #align(center + horizon)[
+    #cetz-canvas(length: 0.8cm, {
+      import cetz.draw: *
 
-    content((10.0, 3.0), "Architecture layout", name: "arch", padding: 0.5)
-    cloud-around("arch")
+      content((-10.0, 0.0), "Layerwise Sampling", name: "layerwise", padding: 0.5)
+      rect-around("layerwise")
 
-    set-style(line: ( mark: (end: ">", scale: 2.0)))
-    line("arch", "gatewise-rect")
+      content((0.0, 0.0), "Gatewise Sampling", name: "gatewise", padding: 0.5)
+      rect-around("gatewise")
 
-    content((-5.0, -8.0), [TF-QAS@training-free], name: "tfqas", padding: 0.5)
-    rect-around("tfqas")
+      content((9.0, 0.0), "HW Sampling", name: "hardware", padding: 0.5)
+      cloud-around("hardware")
 
-    content((15.0, -8.0), [GA-QAS@genetic-expressibility], name: "gaqas", padding: 0.5)
-    cloud-around("gaqas")
+      content((10.0, 3.0), "Architecture layout", name: "arch", padding: 0.5)
+      cloud-around("arch")
 
-    content((3.0, -5.0), "our\nTF-QAS", name: "tfqas-ours", padding: 0.5)
-    rect-around("tfqas-ours")
+      set-style(line: ( mark: (end: ">", scale: 2.0)))
+      line("arch", "hardware")
 
-    content((9.0, -5.0), "our\nGA-QAS", name: "gaqas-ours", padding: 0.5)
-    rect-around("gaqas-ours")
+      content((-5.0, -8.0), [TF-QAS@training-free], name: "tfqas", padding: 0.5)
+      rect-around("tfqas")
 
-    content((-6.0, -4.0), "Cost function(s)", name: "costs", padding: 0.5)
-    rect-around("costs")
+      content((15.0, -8.0), [GA-QAS@genetic-expressibility], name: "gaqas", padding: 0.5)
+      cloud-around("gaqas")
 
-    rect(
-        (v => cetz.vector.add(v, (-group-pad, -group-pad)),"layerwise-rect.south-west"),
-        (v => cetz.vector.add(v, (group-pad, group-pad)), "gatewise-rect.north-east"),
-        stroke: green, radius: 0.5, name: "samplers"
-    )
+      content((3.0, -5.0), "our\nTF-QAS", name: "tfqas-ours", padding: 0.5)
+      rect-around("tfqas-ours")
 
-    rect(
-        (v => cetz.vector.add(v, (-group-pad, -group-pad)),"tfqas-ours-rect.south-west"),
-        (v => cetz.vector.add(v, (group-pad, group-pad)), "gaqas-ours-rect.north-east"),
-        stroke: blue, radius: 0.5, name: "searches"
-    )
+      content((9.0, -5.0), "our\nGA-QAS", name: "gaqas-ours", padding: 0.5)
+      rect-around("gaqas-ours")
 
-    line("samplers", "searches")
-    line("costs", "searches")
+      content((-6.0, -4.0), "Cost function(s)", name: "costs", padding: 0.5)
+      rect-around("costs")
 
-    content((6.0, -10.0), text(stroke: purple)[Evaluator], name:"evaluator", padding: 0.5)
-    rect-around("evaluator")
+      rect(
+          (v => cetz.vector.add(v, (-group-pad, -group-pad)),"layerwise-rect.south-west"),
+          (v => cetz.vector.add(v, (group-pad, group-pad)), "hardware.north-east"),
+          stroke: green, radius: 0.5, name: "samplers"
+      )
 
-    line("searches", "evaluator-rect")
-    line("tfqas-rect", "evaluator-rect")
-    line("gaqas", "evaluator-rect")
+      rect(
+          (v => cetz.vector.add(v, (-group-pad, -group-pad)),"tfqas-ours-rect.south-west"),
+          (v => cetz.vector.add(v, (group-pad, group-pad)), "gaqas-ours-rect.north-east"),
+          stroke: blue, radius: 0.5, name: "searches"
+      )
 
-  })
+      line("samplers", "searches")
+      line("costs", "searches")
+
+      content((6.0, -10.0), text(stroke: purple)[Evaluator], name:"evaluator", padding: 0.5)
+      rect-around("evaluator")
+
+      line("searches", "evaluator-rect")
+      line("tfqas-rect", "evaluator-rect")
+      line("gaqas", "evaluator-rect")
+
+    })
+    ]
+  ]
+
+  == Cost Function
+
+  #slide[
+    #align(center + horizon)[
+    #cetz-canvas(length: 0.8cm, {
+      import cetz.draw: *
+      set-style(line: ( mark: (end: ">", scale: 2.0)))
+      set-style(content: (padding: 0.5))
+
+      content((0.0,0.0), $"Circuit"(theta)$, name: "circ")
+
+      content((0.0, -5.5), $f(x, y, z)$)
+      content((0.0, -12.0), "cost", name: "cost")
+
+
+      content((-10.0, -2.0), "Expressivity", name: "expressivity")
+      content((-10.0, -5.0), "Entanglement", name: "entanglement")
+      content((-10.0, -8.0), "Fidelity", name: "fidelity")
+
+      rect((-2.5, -3.0), (2.5, -8.0), name: "cost_function", radius: 1.5)
+
+      line("circ", "cost_function")
+      line("cost_function", "cost")
+      set-style(line: ( mark: (start: ">", end: ">", scale: 2.0)))
+      line("expressivity", "cost_function")
+      line("entanglement", "cost_function")
+      line("fidelity", "cost_function")
+    })
+    ]
   ]
 ]
+
+= Week 25
+
+#project-layout
+
+= Week 24
+
+Evaluator
+
+== Content
+
+- Status Overview
+- Evaluator explained
+- TF-QAS runs
+
+== Status
+
+#project-layout
 
 == Evaluator
 
