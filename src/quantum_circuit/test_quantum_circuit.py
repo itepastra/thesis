@@ -1,84 +1,84 @@
 from random import Random
 
 import sampling
-from quantum_circuit import ALL_GATE_TYPES, ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit import ALL_GATE_TYPES, GateType, ParametrizedQuantumCircuit, QuantumGate
 from test_helpers import SAMPLES_COUNT
 
 
 def test_append_gate_collapses_when_last_layer_empty():
     circ = ParametrizedQuantumCircuit(2)
     assert len(circ.gates) == 0
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
     assert len(circ.gates) == 1
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (1,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (1,)))
     assert len(circ.gates) == 1
 
 
 def test_append_gate_makes_new_layer_when_last_layer_full():
     circ = ParametrizedQuantumCircuit(2)
     assert len(circ.gates) == 0
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
     assert len(circ.gates) == 1
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
     assert len(circ.gates) == 2
 
 
 def test_append_gate_puts_gate_at_first_valid_spot():
     circ = ParametrizedQuantumCircuit(2)
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
-    circ.append_gate(QuantumGate(QuantumType.CX, (0, 1)))
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
-    circ.append_gate(QuantumGate(QuantumType.Identity, (1,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.CX, (0, 1)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.Identity, (1,)))
 
-    assert QuantumGate(QuantumType.Identity, (1,)) in (circ.gates[2])
+    assert QuantumGate(GateType.Identity, (1,)) in (circ.gates[2])
 
 
 def test_append_gate_does_not_change_existing_gates():
     circ = ParametrizedQuantumCircuit(2)
-    circ.append_gate(QuantumGate(QuantumType.RX, (0,)))
+    circ.append_gate(QuantumGate(GateType.RX, (0,)))
     gates_a = [[g for g in layer] for layer in circ.gates]
-    circ.append_gate(QuantumGate(QuantumType.CX, (0, 1)))
+    circ.append_gate(QuantumGate(GateType.CX, (0, 1)))
     assert all(gate in layer for original, layer in zip(gates_a, circ.gates) for gate in original)
     gates_b = [[g for g in layer] for layer in circ.gates]
-    circ.append_gate(QuantumGate(QuantumType.RY, (0,)))
+    circ.append_gate(QuantumGate(GateType.RY, (0,)))
     assert all(gate in layer for original, layer in zip(gates_b, circ.gates) for gate in original)
     gates_c = [[g for g in layer] for layer in circ.gates]
-    circ.append_gate(QuantumGate(QuantumType.RZ, (0,)))
+    circ.append_gate(QuantumGate(GateType.RZ, (0,)))
     assert all(gate in layer for original, layer in zip(gates_c, circ.gates) for gate in original)
     gates_d = [[g for g in layer] for layer in circ.gates]
-    circ.append_gate(QuantumGate(QuantumType.Identity, (1,)))
+    circ.append_gate(QuantumGate(GateType.Identity, (1,)))
     assert all(gate in layer for original, layer in zip(gates_d, circ.gates) for gate in original)
 
 
 def test_append_single_qubit_gate_updates_qubit_mask_correctly():
     circ = ParametrizedQuantumCircuit(4)
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
     assert len(circ.layer_bitsets) == 1
     assert circ.layer_bitsets[0] == 0b0001
-    circ.append_gate(QuantumGate(QuantumType.Identity, (1,)))
+    circ.append_gate(QuantumGate(GateType.Identity, (1,)))
     assert len(circ.layer_bitsets) == 1
     assert circ.layer_bitsets[0] == 0b0011
-    circ.append_gate(QuantumGate(QuantumType.RX, (3,)))
+    circ.append_gate(QuantumGate(GateType.RX, (3,)))
     assert len(circ.layer_bitsets) == 1
     assert circ.layer_bitsets[0] == 0b1011
-    circ.append_gate(QuantumGate(QuantumType.RY, (1,)))
+    circ.append_gate(QuantumGate(GateType.RY, (1,)))
     assert len(circ.layer_bitsets) == 2
     assert circ.layer_bitsets[0] == 0b1011
     assert circ.layer_bitsets[1] == 0b0010
-    circ.append_gate(QuantumGate(QuantumType.RZ, (3,)))
+    circ.append_gate(QuantumGate(GateType.RZ, (3,)))
     assert len(circ.layer_bitsets) == 2
     assert circ.layer_bitsets[0] == 0b1011
     assert circ.layer_bitsets[1] == 0b1010
-    circ.append_gate(QuantumGate(QuantumType.X, (2,)))
+    circ.append_gate(QuantumGate(GateType.X, (2,)))
     assert len(circ.layer_bitsets) == 2
     assert circ.layer_bitsets[0] == 0b1111
     assert circ.layer_bitsets[1] == 0b1010
-    circ.append_gate(QuantumGate(QuantumType.Y, (2,)))
+    circ.append_gate(QuantumGate(GateType.Y, (2,)))
     assert len(circ.layer_bitsets) == 2
     assert circ.layer_bitsets[0] == 0b1111
     assert circ.layer_bitsets[1] == 0b1110
-    circ.append_gate(QuantumGate(QuantumType.Z, (3,)))
+    circ.append_gate(QuantumGate(GateType.Z, (3,)))
     assert len(circ.layer_bitsets) == 3
     assert circ.layer_bitsets[0] == 0b1111
     assert circ.layer_bitsets[1] == 0b1110
@@ -87,29 +87,29 @@ def test_append_single_qubit_gate_updates_qubit_mask_correctly():
 
 def test_append_two_qubit_gate_updates_qubit_mask_correctly():
     circ = ParametrizedQuantumCircuit(4)
-    circ.append_gate(QuantumGate(QuantumType.CX, (1, 2)))
+    circ.append_gate(QuantumGate(GateType.CX, (1, 2)))
     assert len(circ.layer_bitsets) == 1
     assert circ.layer_bitsets[0] == 0b0110
-    circ.append_gate(QuantumGate(QuantumType.CZ, (2, 3)))
+    circ.append_gate(QuantumGate(GateType.CZ, (2, 3)))
     assert len(circ.layer_bitsets) == 2
     assert circ.layer_bitsets[0] == 0b0110
     assert circ.layer_bitsets[1] == 0b1100
-    circ.append_gate(QuantumGate(QuantumType.CRX, (0, 1)))
+    circ.append_gate(QuantumGate(GateType.CRX, (0, 1)))
     assert len(circ.layer_bitsets) == 2
     assert circ.layer_bitsets[0] == 0b0110
     assert circ.layer_bitsets[1] == 0b1111
-    circ.append_gate(QuantumGate(QuantumType.RXX, (0, 3)))
+    circ.append_gate(QuantumGate(GateType.RXX, (0, 3)))
     assert len(circ.layer_bitsets) == 3
     assert circ.layer_bitsets[0] == 0b0110
     assert circ.layer_bitsets[1] == 0b1111
     assert circ.layer_bitsets[2] == 0b1001
-    circ.append_gate(QuantumGate(QuantumType.RYY, (0, 3)))
+    circ.append_gate(QuantumGate(GateType.RYY, (0, 3)))
     assert len(circ.layer_bitsets) == 4
     assert circ.layer_bitsets[0] == 0b0110
     assert circ.layer_bitsets[1] == 0b1111
     assert circ.layer_bitsets[2] == 0b1001
     assert circ.layer_bitsets[3] == 0b1001
-    circ.append_gate(QuantumGate(QuantumType.RZZ, (1, 2)))
+    circ.append_gate(QuantumGate(GateType.RZZ, (1, 2)))
     assert len(circ.layer_bitsets) == 4
     assert circ.layer_bitsets[0] == 0b0110
     assert circ.layer_bitsets[1] == 0b1111

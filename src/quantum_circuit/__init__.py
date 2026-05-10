@@ -13,7 +13,7 @@ from .proxy_config import ProxyConfig
 from .qiskit_helpers import build_qiskit_circ
 
 
-class QuantumType(enum.Enum):
+class GateType(enum.Enum):
     Identity = enum.auto()
     Hadamard = enum.auto()
     X = enum.auto()
@@ -34,49 +34,41 @@ class QuantumType(enum.Enum):
 
     def is_single_qubit(self) -> bool:
         return self in {
-            QuantumType.Identity,
-            QuantumType.Hadamard,
-            QuantumType.X,
-            QuantumType.RX,
-            QuantumType.Y,
-            QuantumType.RY,
-            QuantumType.Z,
-            QuantumType.RZ,
+            GateType.Identity,
+            GateType.Hadamard,
+            GateType.X,
+            GateType.RX,
+            GateType.Y,
+            GateType.RY,
+            GateType.Z,
+            GateType.RZ,
         }
 
     def is_parameterized(self) -> bool:
-        return self in {
-            QuantumType.RX,
-            QuantumType.RXX,
-            QuantumType.RY,
-            QuantumType.RYY,
-            QuantumType.RZ,
-            QuantumType.RZZ,
-            QuantumType.CRX,
-        }
+        return self in {GateType.RX, GateType.RXX, GateType.RY, GateType.RYY, GateType.RZ, GateType.RZZ, GateType.CRX}
 
 
 ALL_GATE_TYPES = [
-    QuantumType.Identity,
-    QuantumType.Hadamard,
-    QuantumType.X,
-    QuantumType.RX,
-    QuantumType.RXX,
-    QuantumType.Y,
-    QuantumType.RY,
-    QuantumType.RYY,
-    QuantumType.Z,
-    QuantumType.RZ,
-    QuantumType.RZZ,
-    QuantumType.CX,
-    QuantumType.CRX,
-    QuantumType.CZ,
+    GateType.Identity,
+    GateType.Hadamard,
+    GateType.X,
+    GateType.RX,
+    GateType.RXX,
+    GateType.Y,
+    GateType.RY,
+    GateType.RYY,
+    GateType.Z,
+    GateType.RZ,
+    GateType.RZZ,
+    GateType.CX,
+    GateType.CRX,
+    GateType.CZ,
 ]
 
 
 @dataclass(frozen=True)
 class QuantumGate:
-    type: QuantumType
+    type: GateType
     qubits: tuple[int] | tuple[int, int]
 
     def bitset(self) -> int:

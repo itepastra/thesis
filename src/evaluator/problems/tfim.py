@@ -9,7 +9,7 @@ from numpy.random import Generator
 from qiskit import transpile
 from qiskit_aer.backends.aer_simulator import AerSimulator
 
-from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit import GateType, ParametrizedQuantumCircuit, QuantumGate
 from quantum_circuit.tensorcircuit_helpers import build_tensor_circuit_factory
 
 from . import optimize_circuit_adam
@@ -98,7 +98,7 @@ def make_problem_function(
     def tfim_problem(circ: ParametrizedQuantumCircuit, tpos_offset: int) -> tuple[bool, float]:
 
         tcirc_function = build_tensor_circuit_factory(
-            circ, [QuantumGate(QuantumType.Hadamard, (i,)) for i in range(circ.qubits)], hamiltonian
+            circ, [QuantumGate(GateType.Hadamard, (i,)) for i in range(circ.qubits)], hamiltonian
         )
 
         vec_value_and_grad = tc.backend.jit(tc.backend.vectorized_value_and_grad(tcirc_function))

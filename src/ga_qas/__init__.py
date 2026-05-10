@@ -5,7 +5,7 @@ from random import Random
 
 from tqdm import tqdm
 
-from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit import GateType, ParametrizedQuantumCircuit, QuantumGate
 
 
 @dataclass
@@ -30,7 +30,7 @@ class GeneticAlgorithmSettings:
 
     generations: int
 
-    gate_set: list[QuantumType]
+    gate_set: list[GateType]
 
     additional: str
     """Additional string to add to filename for differentiation"""

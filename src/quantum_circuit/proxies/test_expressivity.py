@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from scipy import stats
 
-from quantum_circuit import ALL_GATE_TYPES, ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit import ALL_GATE_TYPES, GateType, ParametrizedQuantumCircuit, QuantumGate
 from quantum_circuit.proxies.path import paths_proxy
 from quantum_circuit.proxy_config import ProxyConfig
 from sampling import sample_by_gates, sample_by_layers
@@ -16,7 +16,7 @@ def test_identity_circuit_has_correct_expressivity(subtests):
     for qubits in range(1, 10):
         with subtests.test(f"qubits: {qubits}"):
             circ = ParametrizedQuantumCircuit(qubits)
-            circ.append_layer([QuantumGate(QuantumType.Identity, (qb,)) for qb in range(qubits)], True)
+            circ.append_layer([QuantumGate(GateType.Identity, (qb,)) for qb in range(qubits)], True)
 
             proxy_config = ProxyConfig(qubits, expressivity_bins=75, random=Random(1337))
             target_expressivity = ((2**qubits) - 1) * math.log(proxy_config.expressivity_bins)
@@ -30,7 +30,7 @@ def test_rz_circuit_has_correct_expressivity(subtests):
         qubits, expressivity_bins=75, expressivity_samples=5000, force_recalculate=True, random=Random(1337)
     )
     circ = ParametrizedQuantumCircuit(qubits)
-    circ.append_gate(QuantumGate(QuantumType.RZ, (0,)))
+    circ.append_gate(QuantumGate(GateType.RZ, (0,)))
 
     # RZ |0> = |0> so it should give the same result as the identity circuit
     exact_result = ((2**qubits) - 1) * math.log(proxy_config.expressivity_bins)
@@ -61,7 +61,7 @@ def test_rx_circuit_has_correct_expressivity(subtests):
     )
 
     circ = ParametrizedQuantumCircuit(qubits)
-    circ.append_gate(QuantumGate(QuantumType.RX, (0,)))
+    circ.append_gate(QuantumGate(GateType.RX, (0,)))
 
     for attempt in range(SAMPLES_COUNT):
         with subtests.test(attempt):
@@ -81,9 +81,9 @@ def test_simple_chain_circuit_has_correct_expressivity(subtests):
     exact_result = 0.011116
 
     circ = ParametrizedQuantumCircuit(qubits)
-    circ.append_gate(QuantumGate(QuantumType.Hadamard, (0,)))
-    circ.append_gate(QuantumGate(QuantumType.RZ, (0,)))
-    circ.append_gate(QuantumGate(QuantumType.RX, (0,)))
+    circ.append_gate(QuantumGate(GateType.Hadamard, (0,)))
+    circ.append_gate(QuantumGate(GateType.RZ, (0,)))
+    circ.append_gate(QuantumGate(GateType.RX, (0,)))
 
     for attempt in range(SAMPLES_COUNT):
         with subtests.test(attempt):
@@ -91,15 +91,15 @@ def test_simple_chain_circuit_has_correct_expressivity(subtests):
 
 
 NON_PARAMETRIZED_GATES = [
-    QuantumType.Identity,
-    QuantumType.Hadamard,
-    QuantumType.X,
-    QuantumType.Y,
-    QuantumType.Z,
-    QuantumType.CX,
-    QuantumType.XX,
-    QuantumType.YY,
-    QuantumType.ZZ,
+    GateType.Identity,
+    GateType.Hadamard,
+    GateType.X,
+    GateType.Y,
+    GateType.Z,
+    GateType.CX,
+    GateType.XX,
+    GateType.YY,
+    GateType.ZZ,
 ]
 
 

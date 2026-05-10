@@ -12,7 +12,7 @@ import ga_qas
 import sampling
 import tf_qas
 from ga_qas import GeneticAlgorithmSettings
-from quantum_circuit import ParametrizedQuantumCircuit, QuantumType
+from quantum_circuit import GateType, ParametrizedQuantumCircuit
 from quantum_circuit.proxies.expressivity import calculate_expressivity
 from quantum_circuit.proxies.path import paths_proxy
 from quantum_circuit.proxy_config import ProxyConfig
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     strat = {"ga": SearchStrategy.GAQAS, "qd": SearchStrategy.QDQAS, "tf": SearchStrategy.TFQAS}[args.strategy]
     proxy_config = ProxyConfig(args.qubits)
 
-    gate_set = [QuantumType.RX, QuantumType.RY, QuantumType.RZ, QuantumType.RXX, QuantumType.RYY, QuantumType.RZZ]
+    gate_set = [GateType.RX, GateType.RY, GateType.RZ, GateType.RXX, GateType.RYY, GateType.RZZ]
 
     def gate_sampling(random: Random):
         return sampling.sample_by_gates(args.qubits, args.depth, args.params, gate_set, random)

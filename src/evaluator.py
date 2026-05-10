@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from evaluator.problems import benchmark_qas
 from evaluator.problems.tfim import make_problem_function as make_tfim_problem
-from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit import GateType, ParametrizedQuantumCircuit, QuantumGate
 from quantum_circuit.proxy_config import ProxyConfig
 
 BASICS = "basics"
@@ -30,7 +30,7 @@ EVAL_TARGET_TPOS = 2
 def parse_circuit(circuit) -> ParametrizedQuantumCircuit:
     c = ParametrizedQuantumCircuit(circuit["qubits"])
 
-    gates = [QuantumGate(QuantumType(gate["type"]), tuple(gate["qubits"])) for gate in circuit["gates"]]
+    gates = [QuantumGate(GateType(gate["type"]), tuple(gate["qubits"])) for gate in circuit["gates"]]
 
     for gate in gates:
         c.append_gate(gate)

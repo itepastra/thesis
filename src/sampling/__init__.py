@@ -2,14 +2,14 @@ from collections.abc import Callable
 from functools import reduce
 from random import Random
 
-from quantum_circuit import ParametrizedQuantumCircuit, QuantumGate, QuantumType
+from quantum_circuit import GateType, ParametrizedQuantumCircuit, QuantumGate
 
 
 def sample_by_layers(
     qubits: int,
     circuit_depth: int,
     max_params: int,
-    gate_types: list[QuantumType],
+    gate_types: list[GateType],
     random: Random,
     collapse_non_overlapping: bool = True,
 ) -> ParametrizedQuantumCircuit:
@@ -28,7 +28,7 @@ def sample_by_layers(
 
     while len(pqc.gates) < circuit_depth and parameters < max_params:
         even_parity = random.random() < 0.5
-        gate_type: QuantumType = random.choice(gate_types)
+        gate_type: GateType = random.choice(gate_types)
         if gate_type.is_single_qubit():
             positions = [(i,) for i in range(0 if even_parity else 1, qubits, 2)]
         else:
@@ -45,7 +45,7 @@ def sample_by_layers(
 
 
 def sample_by_gates(
-    qubits: int, circuit_depth: int, max_params: int, gate_types: list[QuantumType], random: Random
+    qubits: int, circuit_depth: int, max_params: int, gate_types: list[GateType], random: Random
 ) -> ParametrizedQuantumCircuit:
     pqc = ParametrizedQuantumCircuit(qubits)
     parameters = 0
@@ -72,7 +72,7 @@ def sample_by_gates_fill(
     qubits: int,
     circuit_depth: int,
     max_params: int,
-    gate_types: list[QuantumType],
+    gate_types: list[GateType],
     random: Random,
     one_positions_start: list[int] | None = None,
     two_positions_start: list[tuple[int, int]] | None = None,
@@ -80,9 +80,9 @@ def sample_by_gates_fill(
     pqc = ParametrizedQuantumCircuit(qubits)
     parameters = 0
 
-    single_gate_types: list[QuantumType] = [ty for ty in gate_types if ty.is_single_qubit()]
+    single_gate_types: list[GateType] = [ty for ty in gate_types if ty.is_single_qubit()]
     if qubits <= 1:  # can't have two-qubit gates
-        gate_types: list[QuantumType] = single_gate_types
+        gate_types: list[GateType] = single_gate_types
 
     if one_positions_start is None:
         one_positions_start: list[int] = list(range(qubits))
