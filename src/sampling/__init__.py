@@ -68,6 +68,39 @@ def sample_by_gates(
     return pqc
 
 
+def sample_by_gates_fill(
+    qubits: int, circuit_depth: int, max_params: int, gate_types: list[QuantumType], random: Random
+) -> ParametrizedQuantumCircuit:
+    pqc = ParametrizedQuantumCircuit(qubits)
+    parameters = 0
+
+    single_gate_types = [ty for ty in gate_types if ty.is_single_qubit()]
+    if qubits <= 1:  # can't have two-qubit gates
+        gate_types = single_gate_types
+
+    two_positions = [(x, (x + 1) % qubits) for x in range(qubits)]
+    one_positions = list(range(qubits))
+
+    while len(pqc.gates) < circuit_depth and parameters < max_params:
+        if not one_positions:
+            two_positions = [(x, (x + 1) % qubits) for x in range(qubits)]
+            one_positions = list(range(qubits))
+
+        current_gate_types = gate_types if two_positions else single_gate_types
+
+        gate_type = random.choice(current_gate_types)
+        if gate_type.is_single_qubit():
+            pos = (random.choice(one_positions),)
+        else:
+            pos = random.choice(two_positions)
+
+        pqc.append_gate(QuantumGate(gate_type, pos))
+        two_positions = [x for x in two_positions if x[0] not in pos and x[1] not in pos]
+        one_positions = [x for x in one_positions if x not in pos]
+
+    return pqc
+
+
 # ===========
 # = Filters =
 # ===========
