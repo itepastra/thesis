@@ -69,7 +69,13 @@ def sample_by_gates(
 
 
 def sample_by_gates_fill(
-    qubits: int, circuit_depth: int, max_params: int, gate_types: list[QuantumType], random: Random
+    qubits: int,
+    circuit_depth: int,
+    max_params: int,
+    gate_types: list[QuantumType],
+    random: Random,
+    one_positions_start: list[int] | None = None,
+    two_positions_start: list[tuple[int, int]] | None = None,
 ) -> ParametrizedQuantumCircuit:
     pqc = ParametrizedQuantumCircuit(qubits)
     parameters = 0
@@ -78,24 +84,27 @@ def sample_by_gates_fill(
     if qubits <= 1:  # can't have two-qubit gates
         gate_types = single_gate_types
 
-    two_positions = [(x, (x + 1) % qubits) for x in range(qubits)]
-    one_positions = list(range(qubits))
+    if one_positions_start is None:
+        one_positions_start: list[int] = list(range(qubits))
+    if two_positions_start is None:
+        two_positions_start: list[tuple[int, int]] = [(x, (x + 1) % qubits) for x in range(qubits)]
+
+    one_positions: list[int] = []
+    two_positions: list[tuple[int, int]] = []
 
     while len(pqc.gates) < circuit_depth and parameters < max_params:
         if not one_positions:
-            two_positions = [(x, (x + 1) % qubits) for x in range(qubits)]
-            one_positions = list(range(qubits))
+            two_positions = two_positions_start.copy()
+            one_positions = one_positions_start.copy()
 
-        current_gate_types = gate_types if two_positions else single_gate_types
-
-        gate_type = random.choice(current_gate_types)
+        gate_type = random.choice(gate_types if two_positions else single_gate_types)
         if gate_type.is_single_qubit():
             pos = (random.choice(one_positions),)
         else:
             pos = random.choice(two_positions)
 
         pqc.append_gate(QuantumGate(gate_type, pos))
-        two_positions = [x for x in two_positions if x[0] not in pos and x[1] not in pos]
+        two_positions = [x for x in two_positions if (x[0] not in pos) and (x[1] not in pos)]
         one_positions = [x for x in one_positions if x not in pos]
 
     return pqc
@@ -108,7 +117,7 @@ def sample_by_gates_fill(
 
 
 def ignore_too_many_two_qubit_gates(
-    sampling_func: Callable[[Random], ParametrizedQuantumCircuit], max_two_qubit_prop: float
+    sampling_func: Callable[[Random], ParametrizedQuantumCircuit], max_two_qubit_prop: float = 0.5
 ) -> Callable[[Random], ParametrizedQuantumCircuit]:
     assert max_two_qubit_prop <= 1.0
 
