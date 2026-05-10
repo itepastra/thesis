@@ -87,7 +87,9 @@ def sample_by_gates_fill(
     if one_positions_start is None:
         one_positions_start: list[int] = list(range(qubits))
     if two_positions_start is None:
-        two_positions_start: list[tuple[int, int]] = [(x, (x + 1) % qubits) for x in range(qubits)]
+        two_positions_start: list[tuple[int, int]] = [
+            t for x in range(qubits) for t in [(x, (x + 1) % qubits), ((x + 1) % qubits, x)]
+        ]
 
     one_positions: list[int] = []
     two_positions: list[tuple[int, int]] = []
