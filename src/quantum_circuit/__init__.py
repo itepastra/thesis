@@ -44,6 +44,44 @@ class GateType(enum.Enum):
             GateType.RZ,
         }
 
+    def to_qiskit_str(self) -> str:
+        if self == GateType.Identity:
+            return "id"
+        elif self == GateType.Hadamard:
+            return "h"
+        elif self == GateType.X:
+            return "x"
+        elif self == GateType.RX:
+            return "rx"
+        elif self == GateType.RXX:
+            return "rxx"
+        elif self == GateType.Y:
+            return "y"
+        elif self == GateType.RY:
+            return "ry"
+        elif self == GateType.RYY:
+            return "ryy"
+        elif self == GateType.Z:
+            return "z"
+        elif self == GateType.RZ:
+            return "rz"
+        elif self == GateType.RZZ:
+            return "rzz"
+        elif self == GateType.XX:
+            return "xx"
+        elif self == GateType.YY:
+            return "yy"
+        elif self == GateType.ZZ:
+            return "zz"
+        elif self == GateType.CX:
+            return "cx"
+        elif self == GateType.CRX:
+            return "crx"
+        elif self == GateType.CZ:
+            return "cz"
+        else:
+            raise f"Don't know string representation for {self}"
+
     def is_parameterized(self) -> bool:
         return self in {GateType.RX, GateType.RXX, GateType.RY, GateType.RYY, GateType.RZ, GateType.RZZ, GateType.CRX}
 

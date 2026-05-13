@@ -2,6 +2,12 @@ from collections.abc import Callable
 from functools import reduce
 from random import Random
 
+import qiskit
+from qiskit.providers.backend import BackendV2
+from qiskit.providers.fake_provider.generic_backend_v2 import GenericBackendV2
+from qiskit_aer.noise.noise_model import NoiseModel
+
+from hardware_descriptor import Topology
 from quantum_circuit import GateType, ParametrizedQuantumCircuit, QuantumGate
 
 
@@ -74,8 +80,7 @@ def sample_by_gates_fill(
     max_params: int,
     gate_types: list[GateType],
     random: Random,
-    one_positions_start: list[int] | None = None,
-    two_positions_start: list[tuple[int, int]] | None = None,
+    hw_descriptor: Topology | None = None,
 ) -> ParametrizedQuantumCircuit:
     pqc = ParametrizedQuantumCircuit(qubits)
     parameters = 0
@@ -84,20 +89,19 @@ def sample_by_gates_fill(
     if qubits <= 1:  # can't have two-qubit gates
         gate_types: list[GateType] = single_gate_types
 
-    if one_positions_start is None:
-        one_positions_start: list[int] = list(range(qubits))
-    if two_positions_start is None:
-        two_positions_start: list[tuple[int, int]] = [
-            t for x in range(qubits) for t in [(x, (x + 1) % qubits), ((x + 1) % qubits, x)]
-        ]
-
-    one_positions: list[int] = []
-    two_positions: list[tuple[int, int]] = []
+    if hw_descriptor is None:
+        hw_descriptor = Topology(
+            GenericBackendV2(
+                qubits,
+                [gt.to_qiskit_str() for gt in gate_types],
+                coupling_map=[t for x in range(qubits) for t in [[x, (x + 1) % qubits], [(x + 1) % qubits, x]]],
+            )
+        )
 
     while len(pqc.gates) < circuit_depth and parameters < max_params:
         if not one_positions:
-            two_positions: list[tuple[int, int]] = two_positions_start.copy()
-            one_positions: list[int] = one_positions_start.copy()
+            two_positions = list(hw_descriptor.graph.edges)
+            one_positions = list(hw_descriptor.graph.nodes)
 
         gate_type = random.choice(gate_types if two_positions else single_gate_types)
         if gate_type.is_single_qubit():

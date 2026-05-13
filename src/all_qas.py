@@ -4,7 +4,9 @@ import logging
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from enum import Enum
+from functools import Placeholder, partial
 from random import Random
+from typing import Callable
 
 from tqdm import tqdm
 
@@ -18,12 +20,6 @@ from quantum_circuit.proxies.path import paths_proxy
 from quantum_circuit.proxy_config import ProxyConfig
 from sampling import ignore_too_many_two_qubit_gates
 from tf_qas import TrainingFreeSettings
-
-
-class SearchStrategy(Enum):
-    TFQAS = 1
-    GAQAS = 2
-    QDQAS = 3
 
 
 def main(search_settings: TrainingFreeSettings | GeneticAlgorithmSettings):
@@ -68,10 +64,15 @@ def main(search_settings: TrainingFreeSettings | GeneticAlgorithmSettings):
         pass
 
 
+GA_NAME = "ga"
+TF_NAME = "tf"
+RAND_NAME = "random"
+
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument("--strategy", type=str, default="qd", help="Search strategy", choices=["ga", "qd", "tf"])
+    parser.add_argument("strategy", type=str, help="Search strategy", choices=[GA_NAME, TF_NAME, RAND_NAME])
+    parser.add_argument("sampler", type=str, help="Sampling strategy", choices=["layerwise", "gatewise", "gate_filled"])
     parser.add_argument("--qubits", type=int, default=5, help="How many qubits to search a PQC for")
     parser.add_argument("--depth", type=int, default=15, help="How many layers the PQC can have at most")
     parser.add_argument(
@@ -80,76 +81,75 @@ if __name__ == "__main__":
     parser.add_argument("--extra", type=str, default="", help="Note about the settings for filename")
     args = parser.parse_args()
 
-    strat = {"ga": SearchStrategy.GAQAS, "qd": SearchStrategy.QDQAS, "tf": SearchStrategy.TFQAS}[args.strategy]
     proxy_config = ProxyConfig(args.qubits)
 
     gate_set = [GateType.RX, GateType.RY, GateType.RZ, GateType.RXX, GateType.RYY, GateType.RZZ]
 
-    def gate_sampling(random: Random):
-        return sampling.sample_by_gates(args.qubits, args.depth, args.params, gate_set, random)
+    match args.sampler:
+        case "layerwise":
 
-    def layer_sampling(random: Random):
-        return sampling.sample_by_layers(args.qubits, args.depth, args.params, gate_set, random, True)
-
-    match strat:
-        case SearchStrategy.TFQAS:
-
-            def cheap_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                return [-float(x) for x in paths_proxy(circs)]
-
-            def expensive_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
-
-            initial_samples = 50000
-            t2_samples = 5000
-
-            search_settings = TrainingFreeSettings(
-                args.qubits,
-                args.depth,
-                cheap_proxy,
-                expensive_proxy,
-                ignore_too_many_two_qubit_gates(layer_sampling, 0.5),
-                initial_samples,
-                t2_samples,
-                f"ours-{initial_samples}-{t2_samples}{"-" if args.extra else ""}{args.extra}",
+            sampler = partial(
+                sampling.sample_by_layers, args.qubits, args.depth, args.params, gate_set, Placeholder, True
             )
 
-        case SearchStrategy.GAQAS:
+        case "gatewise":
 
-            def expressibility_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
+            def gate_sampling(random: Random):
+                return sampling.sample_by_gates(args.qubits, args.depth, args.params, gate_set, random)
 
-            search_settings = GeneticAlgorithmSettings(
-                args.qubits,
-                args.depth,
-                expressibility_proxy_value,
-                gate_sampling,
-                20,
-                20,
-                13,
-                0.1,
-                20,
-                gate_set,
-                f"ours{"-" if args.extra else ""}{args.extra}",
-            )
-        case SearchStrategy.QDQAS:
+            sampler = gate_sampling
 
-            def expressibility_distance_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
-                target_expressibility = -0.05
-                return [abs(-float(x) - target_expressibility) for x in calculate_expressivity(circs, proxy_config)]
+        case "gate_filled":
 
-            search_settings = GeneticAlgorithmSettings(
-                args.qubits,
-                args.depth,
-                expressibility_distance_proxy_value,
-                gate_sampling,
-                20,
-                20,
-                15,
-                0.3,
-                20,
-                gate_set,
-                f"diversity{"-" if args.extra else ""}{args.extra}",
-            )
+            def gate_sampling(random: Random):
+                return sampling.sample_by_gates_fill(args.qubits, args.depth, args.params, gate_set, random)
+
+            sampler = gate_sampling
+
+    if args.strategy == TF_NAME:
+
+        def cheap_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
+            return [-float(x) for x in paths_proxy(circs)]
+
+        def expensive_proxy(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
+            return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
+
+        samples = 50000
+        t2_samples = 5000
+
+        search_settings = TrainingFreeSettings(
+            args.qubits,
+            args.depth,
+            cheap_proxy,
+            expensive_proxy,
+            ignore_too_many_two_qubit_gates(sampler, 0.5),
+            samples,
+            t2_samples,
+            f"ours-{samples}-{t2_samples}{"-" if args.extra else ""}{args.extra}",
+        )
+
+    elif args.strategy == GA_NAME:
+
+        def expressibility_proxy_value(circs: list[ParametrizedQuantumCircuit]) -> list[float]:
+            return [-float(x) for x in calculate_expressivity(circs, proxy_config)]
+
+        search_settings = GeneticAlgorithmSettings(
+            args.qubits,
+            args.depth,
+            expressibility_proxy_value,
+            sampler,
+            20,
+            20,
+            13,
+            0.1,
+            20,
+            gate_set,
+            f"ours{"-" if args.extra else ""}{args.extra}",
+        )
+
+    elif args.strategy == RAND_NAME:
+        samples = 5000
+
+        search_settings = RandomSettings(args.qubits, args.depth, sampler, samples)
 
     main(search_settings)
